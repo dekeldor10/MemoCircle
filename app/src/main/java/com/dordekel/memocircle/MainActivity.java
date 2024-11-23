@@ -32,7 +32,9 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        //I will be inflating every fragment with a tag. this will mainly help me make sure i don't inflate an already-inflated fragment.
+        //Please note: I will be inflating every fragment with a tag.
+        //This will mainly help me make sure I don't inflate an already-inflated fragment.
+
         //inflate PersonalMemoFragment by default, every time the app is opened (just like Google Keep).
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragmentContainer, new PersonalMemoFragment(), "PERSONAL_MEMO_FRAGMENT")
@@ -46,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
             PersonalMemoFragment personalMemoFragment = (PersonalMemoFragment) getSupportFragmentManager().findFragmentByTag("PERSONAL_MEMO_FRAGMENT");
             //check if the fragment is already inflated and visible.
             if(personalMemoFragment == null || !personalMemoFragment.isVisible()){
-                //the fragment is not visible, replace it.
+                //the fragment is not visible, inflate it.
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragmentContainer, new PersonalMemoFragment(), "PERSONAL_MEMO_FRAGMENT")
                         .commit();
@@ -58,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
             SharedMemoFragment sharedMemoFragment = (SharedMemoFragment) getSupportFragmentManager().findFragmentByTag("SHARED_MEMO_FRAGMENT");
             //check if the fragment is already inflated and visible.
             if(sharedMemoFragment == null || !sharedMemoFragment.isVisible()){
-                //the fragment is not visible, replace it.
+                //the fragment is not visible, inflate it.
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragmentContainer, new SharedMemoFragment(), "SHARED_MEMO_FRAGMENT")
                         .commit();
@@ -70,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
             ForYouMemoFragment forYouMemoFragment = (ForYouMemoFragment) getSupportFragmentManager().findFragmentByTag("FOR_YOU_MEMO_FRAGMENT");
             //check if the fragment is already inflated and visible.
             if(forYouMemoFragment == null || !forYouMemoFragment.isVisible()){
-                //the fragment is not visible, replace it.
+                //the fragment is not visible, inflate it.
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragmentContainer, new ForYouMemoFragment(), "FOR_YOU_MEMO_FRAGMENT")
                         .commit();
@@ -82,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
             ProfileFragment profileFragment = (ProfileFragment) getSupportFragmentManager().findFragmentByTag("PROFILE_FRAGMENT");
             //check if the fragment is already inflated and visible.
             if(profileFragment == null || !profileFragment.isVisible()){
-                //the fragment is not visible, replace it.
+                //the fragment is not visible, inflate it.
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragmentContainer, new ProfileFragment(), "PROFILE_FRAGMENT")
                         .commit();
