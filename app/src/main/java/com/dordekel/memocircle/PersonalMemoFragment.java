@@ -1,5 +1,6 @@
 package com.dordekel.memocircle;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -7,7 +8,11 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 /**
@@ -69,25 +74,36 @@ public class PersonalMemoFragment extends Fragment {
 
         //declare the buttons
         Button newNoteButton = view.findViewById(R.id.newNoteButton);
+        ListView notesListView = view.findViewById(R.id.notesListView);
+        //TextView textView = view.findViewById(R.id.textView);
 
         //set the onClickListeners
         newNoteButton.setOnClickListener(v -> {
-            //create a new note.
-            //when using Room, the note has to be created by a Thread.
-            new Thread(() -> {
-                Note note1 = new Note("First Ever Note!", "Hello everyone. this app will for sure get " +
-                        "perfect marks by Michal and the Ministry of Education.");
-                noteDao.insertNote(note1);
-
-
-                //display note in logCat (for debugging purposes):
-                System.out.println(noteDao.getNoteByTitle("First Ever Note!").getTextContent());
-            }).start();
-
+            //move to NoteActivity:
+            Intent intent = new Intent(getActivity(), NoteActivity.class);
+            startActivity(intent);
         });
 
+        //retrieving data from database should be done under a thread
+
+        new Thread(() -> {
+           Note[] noteArr = noteDao.getAllNotes();
+
+           //create a String arr of the titles:
+            String[] notesTitlesArr = new String[noteArr.length];
+            for(int i = 0; i < noteArr.length; i++){{
+                notesTitlesArr[i] = noteArr[i].getTitle();
+            }}
+
+            //use an ArrayAdapter, with a built-in layout (for simplicity for now, this will be changed)
+            ArrayAdapter<String> adapter = new ArrayAdapter<>
+                    (getContext(), android.R.layout.simple_list_item_1, notesTitlesArr);
+
+            //set the adapter on the ListView. this will display the list of notes.
+            notesListView.setAdapter(adapter);
+
+        }).start();
 
         return view;
-
     }
 }
