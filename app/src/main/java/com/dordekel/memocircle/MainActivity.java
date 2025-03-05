@@ -93,3 +93,9 @@ public class MainActivity extends AppCompatActivity {
 
     }
 }
+// delete later, just using this to organize my stuff:
+/*
+TODO: 1. finish the PersonalMemo:
+TODO 1.1. make it possible to see all the notes properties (view image at least)
+TODO 1.2. fix the activityForResult ao that the picture is higher quality and you can pick from the gallery.
+ */

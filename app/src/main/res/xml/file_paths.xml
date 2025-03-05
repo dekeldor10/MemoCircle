@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- this xml file explains where the FileProvider can access. -->
+<paths>
+    <!-- Allow access to app's external storage directory -->
+    <external-path name="external_files" path="." />
+
+    <!-- Allow access to app's internal storage directory -->
+    <files-path name="internal_files" path="." />
+
+    <!-- Allow access to app's cache directory -->
+    <cache-path name="cache_files" path="." />
+
+    <!-- Allow access to a specific directory within external storage -->
+    <external-files-path name="specific_external_files" path="Pictures/" />
+</paths>

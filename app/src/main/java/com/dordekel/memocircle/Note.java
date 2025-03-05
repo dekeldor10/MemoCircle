@@ -2,6 +2,7 @@ package com.dordekel.memocircle;
 
 import android.graphics.Bitmap;
 
+import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
@@ -15,6 +16,8 @@ public class Note {
     //declare other columns (there is no need to edit the columns names)
     private String title;
     private String textContent;
+    //I'll store the image in a byte array. in order to store it with room, the column has to be of the BLOB type.
+    @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
     private byte[] imgByteArr;
 
 
@@ -22,12 +25,15 @@ public class Note {
     //The plan is to make every note text-only by default, and add images if the user wants to.
 
     //text-only note:
-    public Note(String title, String textContent) {
+    public Note(String title, String textContent, byte[] imgByteArr) {
         this.title = title;
         this.textContent = textContent;
+        //edited: I united the two constructors into one. if the user doesn't want to add an image, the default option is null.
+        this.imgByteArr = imgByteArr;
     }
     //Unfortunately, Room can only persist one constructor.
     //I'll use the default for now.
+    /*
     @Ignore
     //note with image:
     public Note(String title, String textContent, byte[] imgByteArr) {
@@ -35,6 +41,8 @@ public class Note {
         this.textContent = textContent;
         this.imgByteArr = imgByteArr;
     }
+
+     */
 
     //getters:
     public int getNoteId(){
