@@ -12,5 +12,5 @@
     <cache-path name="cache_files" path="." />
 
     <!-- Allow access to a specific directory within external storage -->
-    <external-files-path name="specific_external_files" path="Pictures/" />
+    <external-files-path name="images" path="Pictures/" />
 </paths>
