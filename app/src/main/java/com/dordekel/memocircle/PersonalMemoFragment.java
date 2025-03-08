@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -77,11 +78,14 @@ public class PersonalMemoFragment extends Fragment {
         ListView notesListView = view.findViewById(R.id.notesListView);
         //TextView textView = view.findViewById(R.id.textView);
 
+        //create the intent for the NoteActivity (used multiple times in this fragment):
+        Intent noteIntent = new Intent(getActivity(), NoteActivity.class);
+
         //set the onClickListeners
         newNoteButton.setOnClickListener(v -> {
             //move to NoteActivity:
-            Intent intent = new Intent(getActivity(), NoteActivity.class);
-            startActivity(intent);
+            noteIntent.putExtra("isNewNote", true);
+            startActivity(noteIntent);
         });
 
         //retrieving data from database should be done under a thread
@@ -97,7 +101,29 @@ public class PersonalMemoFragment extends Fragment {
 
             //use an ArrayAdapter, with a built-in layout (for simplicity for now, this will be changed)
             ArrayAdapter<String> adapter = new ArrayAdapter<>
-                    (getContext(), android.R.layout.simple_list_item_1, notesTitlesArr);
+                    (getContext(), android.R.layout.simple_selectable_list_item, notesTitlesArr);
+
+            //onClick for a note (item in the ListView):
+            notesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                    //get item title in order to find the note from the database via a query (specified in the DAO)
+                    String noteTitle = adapter.getItem(position);
+
+                    //use the existing noteIntent:
+                    //the NoteActivity should know if this is a new note or not.
+                    //do this by adding another putExtra here, where it specifies
+                    //what initiated the intent (pressing a note or creating a new one)
+                    noteIntent.putExtra("isNewNote", false);
+                    //pass the noteID to the NoteActivity via putExtra
+                    noteIntent.putExtra("noteID", noteArr[position].getNoteId());
+
+                    //start the NoteActivity:
+                    startActivity(noteIntent);
+
+                }
+            });
+
 
             //set the adapter on the ListView. this will display the list of notes.
             notesListView.setAdapter(adapter);

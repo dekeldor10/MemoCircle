@@ -29,4 +29,7 @@ public interface NoteDao {
     //SQL query to get a note by its title.
     @Query("SELECT * FROM notes WHERE title = :title")
     public Note getNoteByTitle(String title);
+    //SQL query to get a note by its noteId.
+    @Query("SELECT * FROM notes WHERE noteID = :noteID")
+    public Note getNoteByNoteID(int noteID);
 }

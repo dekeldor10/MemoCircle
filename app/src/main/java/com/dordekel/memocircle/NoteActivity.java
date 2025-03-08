@@ -42,6 +42,10 @@ public class NoteActivity extends AppCompatActivity {
     ImageView testingImageView;
     byte[] resultByteArr;
     public Uri imageUri;
+    int noteID;
+    boolean isNewNote;
+    Note existingNote;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +70,28 @@ public class NoteActivity extends AppCompatActivity {
         AppDatabase db = AppDatabase.getInstance(this);
         NoteDao noteDao = db.noteDao();
 
+        //variables and things to do when this isn't a new note:
+        //set local isNewNote to the one provided by the noteIntent (will be used in this several times):
+        isNewNote = getIntent().getBooleanExtra("isNewNote", false);
+
+        //if this isn't a new note, get the noteID from the intent:
+        if(!isNewNote){
+            noteID = getIntent().getIntExtra("noteID", 1);
+            //Toast.makeText(NoteActivity.this, "noteID: " + noteID, Toast.LENGTH_SHORT).show();
+
+            //set all the EditTexts to the existing note's values:
+            existingNote = noteDao.getNoteByNoteID(noteID);
+            titleEditText.setText(existingNote.getTitle());
+            textContentEditText.setText(existingNote.getTextContent());
+            //resultByteArr = existingNote.getImgByteArr();
+            //TODO: make the whole operation work with an image.
+
+            //update the text on the saveNoteButton to "update note":
+            saveNoteButton.setText("Update Note");
+
+            //TODO: add a delete note button.
+        }
+
 
 
         //set the onClickListeners
@@ -82,31 +108,41 @@ public class NoteActivity extends AppCompatActivity {
             String noteTitle = titleEditText.getText().toString();
             String textContent = textContentEditText.getText().toString();
 
-            //create the note with the resultByteArr. if the used did not take a picture, it will be null, which is fine.
-            Note note = new Note(noteTitle, textContent, resultByteArr);
 
-            //save the note to the database:
-            //when using Room, the note has to be created by a Thread.
-            new Thread(() -> {
-                noteDao.insertNote(note);
-                //display note in logCat (for debugging purposes):
-                System.out.println(noteDao.getAllNotes()[0].getTextContent());
-            }).start();
+            //check is this is a new note or an existing one:
+            if(isNewNote){
+                //this is a NEW note. create it.
+                //create the note with the resultByteArr. if the used did not take a picture, it will be null (which is fine).
+                Note note = new Note(noteTitle, textContent, resultByteArr);
 
-            Toast.makeText(NoteActivity.this, "Note Saved!", Toast.LENGTH_SHORT).show();
+                //save the note to the database:
+                //when using Room, the note has to be created by a Thread.
+                new Thread(() -> {
+                    noteDao.insertNote(note);
+                    //display note in logCat (for debugging purposes):
+                    System.out.println(noteDao.getAllNotes()[0].getTextContent());
+                }).start();
+
+                Toast.makeText(NoteActivity.this, " New note Saved!", Toast.LENGTH_SHORT).show();
+            }else{
+                //again, when using Room it's recommended to use a Thread
+                new Thread(() -> {
+                    //this is an EXISTING note. update it.
+                    existingNote.setTitle(noteTitle);
+                    existingNote.setTextContent(textContent);
+                    //existingNote.setImgByteArr(resultByteArr);
+                    noteDao.updateNote(existingNote);
+                }).start();
+
+
+                Toast.makeText(NoteActivity.this, " Note Updated!", Toast.LENGTH_SHORT).show();
+            }
+
 
         });
 
         addImageButton.setOnClickListener(view -> {
-            /*
 
-
-
-            //launch the camera app (activity for result):
-            Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
-            takePictureActivityResultLauncher.launch(intent);
-
-             */
             //first, check if the all the permission needed are granted (using a foreach loop):
             for(String permission : new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_MEDIA_IMAGES,
             Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}){
@@ -114,20 +150,11 @@ public class NoteActivity extends AppCompatActivity {
                     requestPermissions(new String[]{permission}, 1);
                 }
             }
-            //Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            //takePictureActivityResultLauncher.launch(intent);
+
+            //here, a dialog will show up asking the user if he wants to use the gallery or take a picture.
 
             openCamera();
         });
-
-        //For the finished product, i'll use a textWatcher and a Handler for saving or updating the note when the user
-        //stops writing. for now, i'll just use a button, due to lack of time.
-        /*
-        titleEditText.addTextChangedListener(textWatcherTitle);
-        textContentEditText.addTextChangedListener(textWatcherTextContent);
-
-         */
-
     }
 
 
@@ -139,9 +166,7 @@ public class NoteActivity extends AppCompatActivity {
             //first, make sure it's OK and there is data.
             if (result.getResultCode() == RESULT_OK && result.getData() != null) {
 
-                //use URI for a higher-quality image.
-                //does not work when trying to capture an image with WRITE_EXTERNAL_STORAGE! I'll use the recommended method for it.
-                //Uri imageUri = result.getData().getData();
+                //use URI as google suggests (bonus: gives higher-definition pictures).
                 try {
                     testingImageView.setImageBitmap(uriToBitmap(imageUri));
                 } catch (IOException e) {
@@ -156,15 +181,13 @@ public class NoteActivity extends AppCompatActivity {
     ActivityResultLauncher<IntentSenderRequest> requestUriAccessActivityResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartIntentSenderForResult(), result -> {
                 //make sure the result is OK:
-                if(result.getResultCode() == RESULT_OK){
-                    //great, the user gave permission. Launch the camera:
-                    //openCamera();
-                } else{
-                    //the user did not give permission.
+                if(result.getResultCode() != RESULT_OK){
+                    //the user did not give permission :(.
                     Toast.makeText(NoteActivity.this, "Uri access permission Denied", Toast.LENGTH_SHORT).show();
                 }
             }
     );
+
 
 
     //Launchers:
@@ -197,6 +220,7 @@ public class NoteActivity extends AppCompatActivity {
         takePictureActivityResultLauncher.launch(cameraIntent);
 
     }
+
 
 
     //Image uri methods (cannot be done in a separate class: some of the functions are non-static):
@@ -233,22 +257,6 @@ public class NoteActivity extends AppCompatActivity {
     }
 
 
-    //bundle to byte[] converter (I store the image in byte[] format. it is way better):
-    /*
-    public byte[] BundleToByteArray(Bundle bundle){
-        //use Parcel as a medium.
-        Parcel parcel = Parcel.obtain();
-        bundle.writeToParcel(parcel, 0);
-        byte[] bytes = parcel.marshall();
-        parcel.recycle();
-        return bytes;
-    }
-
-     */
-
-
-
-
 
     //conversions:
 
@@ -266,23 +274,8 @@ public class NoteActivity extends AppCompatActivity {
         //Convert the stream to a byte array and return it
         return stream.toByteArray();
     }
-    /*
-    //Uri to bitmap (old method, i wrote a better one below):
-    public Bitmap uriToBitmap(Uri uri){
-        Bitmap bitmap;
-        try{
-            bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-        } catch (Exception e){
-            e.printStackTrace();
-            Toast.makeText(NoteActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            return null;
-        }
-        return bitmap;
 
-    }
-
-    */
-
+    //Uri to Bitmap (with correct orientation):
     public Bitmap uriToBitmap(Uri uri) throws IOException {
         InputStream inputStream = getContentResolver().openInputStream(uri);
         Bitmap resultBitmap = BitmapFactory.decodeStream(inputStream);
@@ -333,55 +326,6 @@ public class NoteActivity extends AppCompatActivity {
                 return 0;
         }
     }
-
-
-
-
-
-
-
-
-
-    /*
-    //The textWatcher fot the title EditText
-    TextWatcher textWatcherTitle = new TextWatcher() {
-
-        @Override
-        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-        }
-
-        @Override
-        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-        }
-
-        //I will be using this method for creating / updating the note when the user stops writing. Just like in Google Keep.
-        @Override
-        public void afterTextChanged(Editable editable) {
-
-        }
-    };
-
-
-    //The textWatcher for the textContent EditText
-    TextWatcher textWatcherTextContent = new TextWatcher() {
-        @Override
-        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-        }
-
-        @Override
-        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-        }
-        //again, like the title, I will be using this method for creating / updating the note when the user stops writing.
-        @Override
-        public void afterTextChanged(Editable editable) {
-            Toast.makeText(NoteActivity.this, "done editing textContent", Toast.LENGTH_SHORT).show();
-        }
-    };
-
-     */
+    //use textWatcher for saving the note automatically. TODO: add a textWatcher in the future.
 
 }
