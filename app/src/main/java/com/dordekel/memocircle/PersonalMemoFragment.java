@@ -89,7 +89,6 @@ public class PersonalMemoFragment extends Fragment {
         });
 
         //retrieving data from database should be done under a thread
-
         new Thread(() -> {
            Note[] noteArr = noteDao.getAllNotes();
 
@@ -112,8 +111,7 @@ public class PersonalMemoFragment extends Fragment {
 
                     //use the existing noteIntent:
                     //the NoteActivity should know if this is a new note or not.
-                    //do this by adding another putExtra here, where it specifies
-                    //what initiated the intent (pressing a note or creating a new one)
+                    //do this by adding another putExtra here, where it specifies what initiated the intent (pressing a note or creating a new one)
                     noteIntent.putExtra("isNewNote", false);
                     //pass the noteID to the NoteActivity via putExtra
                     noteIntent.putExtra("noteID", noteArr[position].getNoteId());

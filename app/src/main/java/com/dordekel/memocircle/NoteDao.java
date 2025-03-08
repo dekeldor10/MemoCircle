@@ -32,4 +32,7 @@ public interface NoteDao {
     //SQL query to get a note by its noteId.
     @Query("SELECT * FROM notes WHERE noteID = :noteID")
     public Note getNoteByNoteID(int noteID);
+    //SQL query to delete all notes from the database.
+    @Query("DELETE FROM notes")
+    public void deleteAllNotes();
 }

@@ -14,6 +14,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -23,8 +24,10 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
+import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContract;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -40,7 +43,7 @@ import java.util.List;
 public class NoteActivity extends AppCompatActivity {
 
     ImageView testingImageView;
-    byte[] resultByteArr;
+    String resultImgUriString;
     public Uri imageUri;
     int noteID;
     boolean isNewNote;
@@ -61,10 +64,16 @@ public class NoteActivity extends AppCompatActivity {
         //declare the buttons
         Button returnButton = findViewById(R.id.returnButton);
         Button saveNoteButton = findViewById(R.id.saveNoteButton);
+        Button deleteButton = findViewById(R.id.deleteButton);
         ImageButton addImageButton = findViewById(R.id.addImageButton);
         EditText titleEditText = findViewById(R.id.titleEditText);
         EditText textContentEditText = findViewById(R.id.textContentEditText);
         testingImageView = findViewById(R.id.testingImageView);
+
+        //by default, the DeleteButton should not be visible (you cant delete a new note, can you?)
+        //the ImageView should be too - if there isn't an image it's just taking space.
+        deleteButton.setVisibility(View.GONE);
+        testingImageView.setVisibility(View.GONE);
 
         //initiate the database and DAO
         AppDatabase db = AppDatabase.getInstance(this);
@@ -77,25 +86,48 @@ public class NoteActivity extends AppCompatActivity {
         //if this isn't a new note, get the noteID from the intent:
         if(!isNewNote){
             noteID = getIntent().getIntExtra("noteID", 1);
-            //Toast.makeText(NoteActivity.this, "noteID: " + noteID, Toast.LENGTH_SHORT).show();
 
-            //set all the EditTexts to the existing note's values:
+            //make the deleteButton visible:
+            deleteButton.setVisibility(View.VISIBLE);
+
+            //set all the EditTexts and the ImageView to the existing note's values:
             existingNote = noteDao.getNoteByNoteID(noteID);
             titleEditText.setText(existingNote.getTitle());
             textContentEditText.setText(existingNote.getTextContent());
-            //resultByteArr = existingNote.getImgByteArr();
-            //TODO: make the whole operation work with an image.
+
+            if(existingNote.getImgUriString() != null){
+                try{
+                    testingImageView.setImageBitmap(uriToBitmap(Uri.parse(existingNote.getImgUriString())));
+                    testingImageView.setVisibility(View.VISIBLE);
+                }catch(IOException e){
+                    e.printStackTrace();
+                }
+            }
 
             //update the text on the saveNoteButton to "update note":
             saveNoteButton.setText("Update Note");
-
-            //TODO: add a delete note button.
         }
 
-
+        //Check if the all the permission needed are granted (using a foreach loop):
+        for(String permission : new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_MEDIA_IMAGES,
+                Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED}){
+            if(checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED){
+                requestPermissions(new String[]{permission}, 1);
+            }
+        }
 
         //set the onClickListeners
         returnButton.setOnClickListener(v -> {
+            //return to MainActivity
+            Intent returnIntent = new Intent(NoteActivity.this, MainActivity.class);
+            startActivity(returnIntent);
+            //delete this activity and the stack behind it, for optimal user experience.
+            finishAffinity();
+        });
+
+        deleteButton.setOnClickListener(v -> {
+            //delete the note from the database (reminder - this button only shows up if this is an existing note):
+            noteDao.deleteNote(existingNote);
             //return to MainActivity
             Intent returnIntent = new Intent(NoteActivity.this, MainActivity.class);
             startActivity(returnIntent);
@@ -112,8 +144,8 @@ public class NoteActivity extends AppCompatActivity {
             //check is this is a new note or an existing one:
             if(isNewNote){
                 //this is a NEW note. create it.
-                //create the note with the resultByteArr. if the used did not take a picture, it will be null (which is fine).
-                Note note = new Note(noteTitle, textContent, resultByteArr);
+                //create the note with the resultImgUtiString. if the used did not take a picture, it will be null (which is fine).
+                Note note = new Note(noteTitle, textContent, resultImgUriString);
 
                 //save the note to the database:
                 //when using Room, the note has to be created by a Thread.
@@ -130,10 +162,9 @@ public class NoteActivity extends AppCompatActivity {
                     //this is an EXISTING note. update it.
                     existingNote.setTitle(noteTitle);
                     existingNote.setTextContent(textContent);
-                    //existingNote.setImgByteArr(resultByteArr);
+                    existingNote.setImgUriString(resultImgUriString);
                     noteDao.updateNote(existingNote);
                 }).start();
-
 
                 Toast.makeText(NoteActivity.this, " Note Updated!", Toast.LENGTH_SHORT).show();
             }
@@ -142,18 +173,21 @@ public class NoteActivity extends AppCompatActivity {
         });
 
         addImageButton.setOnClickListener(view -> {
-
-            //first, check if the all the permission needed are granted (using a foreach loop):
-            for(String permission : new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_MEDIA_IMAGES,
-            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}){
-                if(checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED){
-                    requestPermissions(new String[]{permission}, 1);
-                }
-            }
-
             //here, a dialog will show up asking the user if he wants to use the gallery or take a picture.
 
-            openCamera();
+            AlertDialog.Builder cameraOrGalleryDialogBuilder = new AlertDialog.Builder(NoteActivity.this);
+            cameraOrGalleryDialogBuilder.setTitle("Add Image");
+            cameraOrGalleryDialogBuilder.setMessage("Do you want to take a picture or choose from the gallery?");
+            cameraOrGalleryDialogBuilder.setPositiveButton("Camera", (dialog, which) -> {
+                openCamera();
+            });
+            cameraOrGalleryDialogBuilder.setNegativeButton("Gallery", (dialog, which) -> {
+                openGallery();
+            });
+            cameraOrGalleryDialogBuilder.setNeutralButton("Cancel", (dialog, which) -> {
+                dialog.dismiss();
+            });
+            cameraOrGalleryDialogBuilder.show();
         });
     }
 
@@ -166,9 +200,43 @@ public class NoteActivity extends AppCompatActivity {
             //first, make sure it's OK and there is data.
             if (result.getResultCode() == RESULT_OK && result.getData() != null) {
 
+                //if the user chose to get a picture from the gallery, the imageUri is empty.
+                //fix it simply by getting the Uri from the result of the activityForResult:
+                if(imageUri == null){
+                    imageUri = result.getData().getData();
+                }
+
+                //from here, it is the same no matter the method the user chose to pick the image.
                 //use URI as google suggests (bonus: gives higher-definition pictures).
                 try {
                     testingImageView.setImageBitmap(uriToBitmap(imageUri));
+                    resultImgUriString = imageUri.toString();
+                    testingImageView.setVisibility(View.VISIBLE);
+                    Toast.makeText(this, resultImgUriString, Toast.LENGTH_LONG).show();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    );
+
+
+    //ActivityForResult with the Photo Picker API, as recommended by Google when the user wants to use the gallery:
+    ActivityResultLauncher<PickVisualMediaRequest> pickMediaActivityResultLauncher = registerForActivityResult(
+        new ActivityResultContracts.PickVisualMedia(), result -> {
+            //check if the result is fine and usable:
+            if(result != null){
+                imageUri = result;
+
+                //grant the permission to permanently access the Uri:
+                getContentResolver().takePersistableUriPermission(imageUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                try {
+                    testingImageView.setImageBitmap(uriToBitmap(imageUri));
+                    resultImgUriString = imageUri.toString();
+                    testingImageView.setVisibility(View.VISIBLE);
+                    Toast.makeText(this, resultImgUriString, Toast.LENGTH_LONG).show();
                 } catch (IOException e) {
                     e.printStackTrace();
                     Toast.makeText(this, "not", Toast.LENGTH_SHORT).show();
@@ -179,13 +247,13 @@ public class NoteActivity extends AppCompatActivity {
 
     //This is the ActivityForResult for asking the user for the permission to access the Uri (mandatory for security reasons - Scoped Storage):
     ActivityResultLauncher<IntentSenderRequest> requestUriAccessActivityResultLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartIntentSenderForResult(), result -> {
-                //make sure the result is OK:
-                if(result.getResultCode() != RESULT_OK){
-                    //the user did not give permission :(.
-                    Toast.makeText(NoteActivity.this, "Uri access permission Denied", Toast.LENGTH_SHORT).show();
-                }
+        new ActivityResultContracts.StartIntentSenderForResult(), result -> {
+            //make sure the result is OK:
+            if(result.getResultCode() != RESULT_OK){
+                //the user did not give permission :(
+                Toast.makeText(NoteActivity.this, "Uri access permission Denied", Toast.LENGTH_SHORT).show();
             }
+        }
     );
 
 
@@ -194,21 +262,19 @@ public class NoteActivity extends AppCompatActivity {
     //If the user wants to add from the gallery:
 
     public void openGallery(){
-        Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        //launch this intent.
-        takePictureActivityResultLauncher.launch(galleryIntent);
+        //this API doesn't use an intent, but a specific PickVisualMediaRequest.
+        pickMediaActivityResultLauncher.launch(new PickVisualMediaRequest.Builder().setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE).build());
     }
     //If the user wants to take a picture via camera:
     public void openCamera() {
         //create the specific Uri for the image the user ia about to take:
-        //Uri imageUri;
         try {
             imageUri = createImageUri();
         } catch (Exception e) {
-            //e.printStackTrace();
             Toast.makeText(NoteActivity.this, "Error creating image Uri in realtime", Toast.LENGTH_SHORT).show();
             return;
         }
+
         //request the Uri access:
         requestUriAccess(imageUri);
 
@@ -253,27 +319,11 @@ public class NoteActivity extends AppCompatActivity {
         }
 
         return uri;
-
     }
 
 
 
     //conversions:
-
-    //byte[] to Bitmap (for showing the image in an ImageView):
-    public Bitmap byteArrayToBitmap(byte[] byteArr){
-        return BitmapFactory.decodeByteArray(byteArr, 0, byteArr.length);
-    }
-
-    //Bitmap to byte[]:
-    public byte[] BitmapToByteArray(Bitmap bitmap){
-        //Create a ByteArrayOutputStream to write the Bitmap data
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        //Compress the Bitmap into the ByteArrayOutputStream (PNG format)
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-        //Convert the stream to a byte array and return it
-        return stream.toByteArray();
-    }
 
     //Uri to Bitmap (with correct orientation):
     public Bitmap uriToBitmap(Uri uri) throws IOException {

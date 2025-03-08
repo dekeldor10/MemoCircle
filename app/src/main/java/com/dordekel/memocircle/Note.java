@@ -1,6 +1,7 @@
 package com.dordekel.memocircle;
 
 import android.graphics.Bitmap;
+import android.net.Uri;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
@@ -16,33 +17,20 @@ public class Note {
     //declare other columns (there is no need to edit the columns names)
     private String title;
     private String textContent;
-    //I'll store the image in a byte array. in order to store it with room, the column has to be of the BLOB type.
-    @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
-    private byte[] imgByteArr;
+    //I'll save the URI of the image as a String. this may create a problem when doing the shared part of the app, but i'll cross the bridge when i get there.
+    private String imgUriString;
 
 
     //create two constructors: for notes with and without images.
     //The plan is to make every note text-only by default, and add images if the user wants to.
 
     //text-only note:
-    public Note(String title, String textContent, byte[] imgByteArr) {
+    public Note(String title, String textContent, String imgUriString) {
         this.title = title;
         this.textContent = textContent;
         //edited: I united the two constructors into one. if the user doesn't want to add an image, the default option is null.
-        this.imgByteArr = imgByteArr;
+        this.imgUriString = imgUriString;
     }
-    //Unfortunately, Room can only persist one constructor.
-    //I'll use the default for now.
-    /*
-    @Ignore
-    //note with image:
-    public Note(String title, String textContent, byte[] imgByteArr) {
-        this.title = title;
-        this.textContent = textContent;
-        this.imgByteArr = imgByteArr;
-    }
-
-     */
 
     //getters:
     public int getNoteId(){
@@ -54,8 +42,8 @@ public class Note {
     public String getTextContent(){
         return textContent;
     }
-    public byte[] getImgByteArr(){
-        return imgByteArr;
+    public String getImgUriString(){
+        return imgUriString;
     }
 
     //setters:
@@ -68,7 +56,6 @@ public class Note {
     public void setTextContent(String textContent){
         this.textContent = textContent;
     }
-    public void setImgByteArr(byte[] imgByteArr) {
-        this.imgByteArr = imgByteArr;
-    }
+    public void setImgUriString(String imgUriString){this.imgUriString = imgUriString;}
+
 }
