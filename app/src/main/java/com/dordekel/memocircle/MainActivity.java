@@ -91,4 +91,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
+    //TODO: if the user has not signed-in with google yet, remind him that he can only use the private, on-device part of the app.
+    // To unlock all features, he should authenticate with google.
 }

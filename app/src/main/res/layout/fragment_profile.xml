@@ -1,14 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".ProfileFragment">
 
     <!-- TODO: Update blank fragment layout -->
+
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="ProfileFragment" />
+        android:layout_height="wrap_content"
+        android:text="sign-in with phone number or via Google" />
 
-</FrameLayout>
+    <TextView
+        android:id="@+id/isSignedIn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="the user is..." />
+
+    <TextView
+        android:id="@+id/userName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="32dp"
+        android:text="userName" />
+
+    <TextView
+        android:id="@+id/userEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="28dp"
+        android:text="userEmail" />
+
+    <EditText
+        android:id="@+id/editTextPhone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="Your phone number for SMS authentication"
+        android:inputType="phone" />
+
+    <Button
+        android:id="@+id/confirmPhoneNumberButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="send SMS" />
+
+    <Button
+        android:id="@+id/googleSignInButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:text="Sign-in With Google" />
+
+    <Button
+        android:id="@+id/signOutButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="350dp"
+        android:layout_gravity="center"
+        android:text="Sign Out" />
+
+</LinearLayout>

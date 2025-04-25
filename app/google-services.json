@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "556629776172",
+    "project_id": "memocircle-ac0c1",
+    "storage_bucket": "memocircle-ac0c1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:556629776172:android:12ed2a4c5b53f96c423e89",
+        "android_client_info": {
+          "package_name": "com.dordekel.memocircle"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "556629776172-lolq9ir3nkt4k7icgtgl1onk1lko6f08.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dordekel.memocircle",
+            "certificate_hash": "c779c506c861bf39f6ffc8d6a9c8001e7a3d19d9"
+          }
+        },
+        {
+          "client_id": "556629776172-3hke2e9nce49391efl2h8jk4nd7kp4br.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQ7FTpWfwlxLxUz-pmircRfy5B625i-V8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "556629776172-3hke2e9nce49391efl2h8jk4nd7kp4br.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

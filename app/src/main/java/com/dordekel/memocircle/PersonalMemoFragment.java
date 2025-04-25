@@ -130,4 +130,5 @@ public class PersonalMemoFragment extends Fragment {
 
         return view;
     }
+    //TODO: something is wrong. for some reason, the app asks me to pick a number of images every time i open a saved note. Check later
 }
