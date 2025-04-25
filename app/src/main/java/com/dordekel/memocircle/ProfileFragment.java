@@ -2,12 +2,17 @@ package com.dordekel.memocircle;
 
 import static com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.credentials.Credential;
 import androidx.credentials.CredentialManager;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 
 import androidx.credentials.CustomCredential;
@@ -25,6 +30,9 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.identity.BeginSignInRequest;
+import com.google.android.gms.auth.api.identity.Identity;
+import com.google.android.gms.auth.api.identity.SignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -41,6 +49,7 @@ import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthOptions;
 import com.google.firebase.auth.PhoneAuthProvider;
+import com.google.firebase.auth.UserProfileChangeRequest;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -54,7 +63,6 @@ public class ProfileFragment extends Fragment {
 
     //variables for google sign-in (old):
     private static final String TAG = "GoogleSignIn";
-    private CredentialManager credentialManager;
     private static final String CLIENT_ID = "656786178012-a0cef1oek69fknl4dn9ig9lejh725ooh.apps.googleusercontent.com";
 
     //new variables for authentication with firebase:
@@ -62,6 +70,8 @@ public class ProfileFragment extends Fragment {
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks mPhoneCallbacks;
     private PhoneAuthProvider.ForceResendingToken mResendToken;
     private PhoneAuthCredential mPhoneAuthCredential;
+    private CredentialManager credentialManager;
+    private SignInClient signInClient;
     FirebaseUser firebaseUser;
     String phoneNumber;
     String mVerificationId;
@@ -100,6 +110,7 @@ public class ProfileFragment extends Fragment {
         return fragment;
     }
 
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -129,22 +140,80 @@ public class ProfileFragment extends Fragment {
         //instance the CredentialManager:
         credentialManager = CredentialManager.create(requireContext());
 
+        //the dialog for updating or inserting the name and email:
+        AlertDialog.Builder emailAndNameDialogBuilder = new AlertDialog.Builder(getContext());
+        emailAndNameDialogBuilder.setTitle("Set Name and Email");
+        emailAndNameDialogBuilder.setMessage("Please set your name and email to continue.");
+
+        //in order to add the two editTexts, i need to create a custom layout and inflate it.
+        View emailAndNameDialogView = getLayoutInflater().inflate(R.layout.email_name_dialog, null);
+        emailAndNameDialogBuilder.setView(emailAndNameDialogView);
+        //get the two editTexts:
+        EditText editTextName = emailAndNameDialogView.findViewById(R.id.editTextName);
+        EditText editTextEmail = emailAndNameDialogView.findViewById(R.id.editTextEmail);
+
+        //set up the dialog buttons:
+        emailAndNameDialogBuilder.setPositiveButton("Submit", (dialog, which) -> {
+            //get the name and email from the editTexts:
+            String email = editTextEmail.getText().toString();
+            //update the user profile in firebase:
+            firebaseUser.updateProfile(new UserProfileChangeRequest.Builder().setDisplayName(editTextName.getText().toString()).build());
+            //verify the user's Email:
+            firebaseUser.sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {//TODO: make it work, i dont think it's working properly now.
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    Toast.makeText(getContext(), "Verification E-mail sent.", Toast.LENGTH_SHORT).show();
+                }
+            });
+            //update the user in firebase:
+            mAuth.updateCurrentUser(firebaseUser);
+            //notify the user:
+            Toast.makeText(getContext(), "Name and e-mail updated successfully", Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+        emailAndNameDialogBuilder.setNegativeButton("Cancel", (dialog, which) -> {
+            // TODO: notify the user that this is important in another dialog. i dont have time for this now.
+            //dismiss the dialog:
+            dialog.dismiss();
+        }).create();
 
 
         //check if the user is already signed-in:
         if(mAuth.getCurrentUser() != null){
             //the user is signed in:
             isSignedInView.setText("the user is signed in");
-            //reload(); //might need to create this method to re-sign-in. not sure tho.
+            //get the user:
             firebaseUser = mAuth.getCurrentUser();
-            userName.setText(firebaseUser.getDisplayName());
-            userEmail.setText(firebaseUser.getEmail());
-            editTextPhone.setVisibility(View.GONE);
-            confirmPhoneNumberButton.setVisibility(View.GONE);
+            //update the views:
+            try{
+                userName.setText(firebaseUser.getDisplayName());
+                userEmail.setText(firebaseUser.getEmail());
+                editTextPhone.setVisibility(View.GONE);
+                confirmPhoneNumberButton.setVisibility(View.GONE);
+
+            } catch (NullPointerException e){
+                //this means that the user still hasn't set his name and email.
+                //start the name and email dialog:
+                Toast.makeText(getContext(), "NullPointerException2", Toast.LENGTH_SHORT).show();
+                emailAndNameDialogBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        //and finally, update the UI:
+
+                        userName.setText(firebaseUser.getDisplayName());
+                        userEmail.setText(firebaseUser.getEmail());
+                        editTextPhone.setVisibility(View.GONE);
+                        confirmPhoneNumberButton.setVisibility(View.GONE);
+                    }
+                }).show();
+            }
+
         } else{
             //the user is not signed in yet.
             isSignedInView.setText("the user is not signed in");
         }
+
+
 
 
         //set the onClickListeners:
@@ -171,13 +240,33 @@ public class ProfileFragment extends Fragment {
                 userVerificationCode = editTextPhone.getText().toString();
                 //start the sign-in process:
                 mPhoneAuthCredential = PhoneAuthProvider.getCredential(mVerificationId, userVerificationCode);
-                //mAuth.signInWithCredential(credential);
                 signInWithPhoneAuthCredential(mPhoneAuthCredential);
+                //update the Views:
                 isSignedInView.setText("the user is signed in");
-                userName.setText(firebaseUser.getDisplayName());
-                userEmail.setText(firebaseUser.getEmail());
-                editTextPhone.setVisibility(View.GONE);
-                confirmPhoneNumberButton.setVisibility(View.GONE);
+                try{
+                    userName.setText(firebaseUser.getDisplayName());
+                    userEmail.setText(firebaseUser.getEmail());
+                    editTextPhone.setVisibility(View.GONE);
+                    confirmPhoneNumberButton.setVisibility(View.GONE);
+
+                } catch (NullPointerException e){
+                    //this means that the user still hasn't set his name and email.
+                    //start the name and email dialog:
+                    Toast.makeText(getContext(), "NullPointerException2", Toast.LENGTH_SHORT).show();
+                    emailAndNameDialogBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                            //and finally, update the UI:
+
+                            userName.setText(firebaseUser.getDisplayName());
+                            userEmail.setText(firebaseUser.getEmail());
+                            editTextPhone.setVisibility(View.GONE);
+                            confirmPhoneNumberButton.setVisibility(View.GONE);
+                        }
+                    }).show();
+
+
+                }
             }
 
         });
@@ -197,7 +286,12 @@ public class ProfileFragment extends Fragment {
                     .addCredentialOption(googleIdOption)
                     .build();
 
-            */
+             */
+            emailAndNameDialogBuilder.show();
+
+
+
+
 
             //signInWithGoogleId(request);
 
@@ -231,7 +325,8 @@ public class ProfileFragment extends Fragment {
             //unfortunately, the getCredential method has some Kotlin-specific requirements and code, making it unavailable to use here..
             //I'll bypass that with Java code, using Task from Google Play services API - which represents an asynchronous operation..
 
-            /** in green: the code i shared with StackOverflow.
+            //in green: the code i shared with StackOverflow.
+            /**
             if(isAdded()){
                 getGoogleCredentialTask(requireContext())
                         .addOnSuccessListener(response -> {
@@ -243,7 +338,9 @@ public class ProfileFragment extends Fragment {
                             Toast.makeText(getContext(), "Google sign-in failed: " + e, Toast.LENGTH_SHORT).show();
                         });
             }
+
              **/
+
 
 
         });
@@ -306,6 +403,7 @@ public class ProfileFragment extends Fragment {
         return view;
     }
 
+
     /**
     //the method to initiate google sign-in with the given GoogleID credential:
     private void signInWithGoogleId(Credential credential){
@@ -324,7 +422,8 @@ public class ProfileFragment extends Fragment {
         }
 
     }
-    **/
+     **/
+
     /**
     //the method handling and returning the appropriate Task for the googleID sign-in process:
     private Task<GetCredentialResponse> getGoogleCredentialTask(Context context) {
@@ -351,8 +450,6 @@ public class ProfileFragment extends Fragment {
      **/
 
 
-
-
     //the method to sign the user in with the given phone credential (final step):
     private void signInWithPhoneAuthCredential(PhoneAuthCredential phoneAuthCredential){
         mAuth.signInWithCredential(phoneAuthCredential).addOnCompleteListener(requireActivity(), new OnCompleteListener<AuthResult>() {
@@ -373,7 +470,8 @@ public class ProfileFragment extends Fragment {
             }
         });
     }
-    **/
+     **/
+
 
     /** this one too:**/
     //unified result handle method for both sign-in methods:

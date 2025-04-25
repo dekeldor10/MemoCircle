@@ -2,6 +2,7 @@ package com.dordekel.memocircle;
 
 import android.Manifest;
 import android.app.PendingIntent;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -116,6 +117,9 @@ public class NoteActivity extends AppCompatActivity {
             }
         }
 
+
+
+
         //set the onClickListeners
         returnButton.setOnClickListener(v -> {
             //return to MainActivity
@@ -206,10 +210,16 @@ public class NoteActivity extends AppCompatActivity {
                     imageUri = result.getData().getData();
                 }
 
+                // Request persistent read and write permissions.
+                //ContentResolver resolver = getContentResolver();
+                //int takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
+
                 //from here, it is the same no matter the method the user chose to pick the image.
                 //use URI as google suggests (bonus: gives higher-definition pictures).
                 try {
                     testingImageView.setImageBitmap(uriToBitmap(imageUri));
+                    //Toast.makeText(this, "takePersistablePermission", Toast.LENGTH_SHORT).show();
+                    //resolver.takePersistableUriPermission(imageUri, takeFlags);
                     resultImgUriString = imageUri.toString();
                     testingImageView.setVisibility(View.VISIBLE);
                     Toast.makeText(this, resultImgUriString, Toast.LENGTH_LONG).show();
@@ -249,6 +259,7 @@ public class NoteActivity extends AppCompatActivity {
     ActivityResultLauncher<IntentSenderRequest> requestUriAccessActivityResultLauncher = registerForActivityResult(
         new ActivityResultContracts.StartIntentSenderForResult(), result -> {
             //make sure the result is OK:
+
             if(result.getResultCode() != RESULT_OK){
                 //the user did not give permission :(
                 Toast.makeText(NoteActivity.this, "Uri access permission Denied", Toast.LENGTH_SHORT).show();
