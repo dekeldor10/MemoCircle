@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase;
 //This is an abstract class that extends RoomDatabase.
 //This class will be used to create the database instance.
 
-//declare the Note class as the only entity in the database, and set the version to 1.
+//declare the Note class as the only entity in the database, and set the version to 2.
 @Database(entities = {Note.class}, version = 2, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     //connect the DAO and the Note entities.

@@ -20,11 +20,7 @@ public class Note {
     //I'll save the URI of the image as a String. this may create a problem when doing the shared part of the app, but i'll cross the bridge when i get there.
     private String imgUriString;
 
-
-    //create two constructors: for notes with and without images.
-    //The plan is to make every note text-only by default, and add images if the user wants to.
-
-    //text-only note:
+    //note:
     public Note(String title, String textContent, String imgUriString) {
         this.title = title;
         this.textContent = textContent;

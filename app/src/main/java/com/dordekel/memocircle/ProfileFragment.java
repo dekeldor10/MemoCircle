@@ -1,24 +1,12 @@
 package com.dordekel.memocircle;
 
-import static com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL;
-
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.IntentSenderRequest;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
-import androidx.credentials.Credential;
 import androidx.credentials.CredentialManager;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 
-import androidx.credentials.CustomCredential;
-import androidx.credentials.GetCredentialRequest;
-import androidx.credentials.GetCredentialResponse;
-import androidx.credentials.PublicKeyCredential;
 import androidx.fragment.app.Fragment;
 
 import android.util.Log;
@@ -30,28 +18,24 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.auth.api.identity.BeginSignInRequest;
-import com.google.android.gms.auth.api.identity.Identity;
 import com.google.android.gms.auth.api.identity.SignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.TaskCompletionSource;
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 import com.google.firebase.FirebaseException;
-import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthOptions;
 import com.google.firebase.auth.PhoneAuthProvider;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -72,7 +56,9 @@ public class ProfileFragment extends Fragment {
     private PhoneAuthCredential mPhoneAuthCredential;
     private CredentialManager credentialManager;
     private SignInClient signInClient;
-    FirebaseUser firebaseUser;
+    static FirebaseUser firebaseUser; //not originally static, make sure it doesn't cause problems.
+    FirebaseDatabase database;
+    DatabaseReference usersDatabaseReference;
     String phoneNumber;
     String mVerificationId;
     String userVerificationCode;
@@ -130,15 +116,22 @@ public class ProfileFragment extends Fragment {
         TextView userName = view.findViewById(R.id.userName);
         TextView userEmail = view.findViewById(R.id.userEmail);
         TextView isSignedInView = view.findViewById(R.id.isSignedIn);
+        TextView textViewUserId = view.findViewById(R.id.textViewUserId);
         EditText editTextPhone = view.findViewById(R.id.editTextPhone);
         Button confirmPhoneNumberButton = view.findViewById(R.id.confirmPhoneNumberButton);
         Button signOutButton = view.findViewById(R.id.signOutButton);
-        Button googleSignInButton = view.findViewById(R.id.googleSignInButton);
+        Button updateInfoButton = view.findViewById(R.id.updateInfoButton);
 
         //instance the mAuth as an instance of FirebaseAuth:
         mAuth = FirebaseAuth.getInstance();
         //instance the CredentialManager:
         credentialManager = CredentialManager.create(requireContext());
+        //instance the FirebaseDatabase:
+        database = FirebaseDatabase.getInstance("https://memocircle-ac0c1-default-rtdb.europe-west1.firebasedatabase.app/"); //the correct URL of the database.
+        //instance the DatabaseReference for the users:
+        usersDatabaseReference = database.getReference("users");
+
+
 
         //the dialog for updating or inserting the name and email:
         AlertDialog.Builder emailAndNameDialogBuilder = new AlertDialog.Builder(getContext());
@@ -157,18 +150,43 @@ public class ProfileFragment extends Fragment {
             //get the name and email from the editTexts:
             String email = editTextEmail.getText().toString();
             //update the user profile in firebase:
-            firebaseUser.updateProfile(new UserProfileChangeRequest.Builder().setDisplayName(editTextName.getText().toString()).build());
+            firebaseUser.updateProfile(new UserProfileChangeRequest.Builder().setDisplayName(editTextName.getText().toString()).build())
+                    .addOnCompleteListener(new OnCompleteListener<Void>() { //the correct way is to update the UI after the info has been sent to firebase.
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            //and finally, update the UI:
+                            userName.setText(firebaseUser.getDisplayName());
+                            userEmail.setText(firebaseUser.getEmail());
+                            textViewUserId.setText(firebaseUser.getUid());
+                            editTextPhone.setVisibility(View.GONE);
+                            confirmPhoneNumberButton.setVisibility(View.GONE);
+
+                            //remove the email_name_dialog from the view (so that you could re-do the dialog):
+                            ViewGroup parent = (ViewGroup) emailAndNameDialogView.getParent();
+                            if (parent != null) {
+                                parent.removeView(emailAndNameDialogView);
+                            }
+
+                            //update the user's info in the database:
+                            usersDatabaseReference.child(firebaseUser.getUid()).setValue(firebaseUser.getDisplayName());
+
+                        }
+                    });
+
             //verify the user's Email:
             firebaseUser.sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {//TODO: make it work, i dont think it's working properly now.
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
-                    Toast.makeText(getContext(), "Verification E-mail sent.", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(getContext(), "Verification E-mail sent.", Toast.LENGTH_SHORT).show();
+                    //update the user in firebase: (maybe also here? i'll work on E-mail verification later.)
+                    //updateUserInDatabase
                 }
             });
             //update the user in firebase:
             mAuth.updateCurrentUser(firebaseUser);
+
             //notify the user:
-            Toast.makeText(getContext(), "Name and e-mail updated successfully", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(getContext(), "Name and e-mail updated successfully", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         });
         emailAndNameDialogBuilder.setNegativeButton("Cancel", (dialog, which) -> {
@@ -188,6 +206,7 @@ public class ProfileFragment extends Fragment {
             try{
                 userName.setText(firebaseUser.getDisplayName());
                 userEmail.setText(firebaseUser.getEmail());
+                textViewUserId.setText(firebaseUser.getUid());
                 editTextPhone.setVisibility(View.GONE);
                 confirmPhoneNumberButton.setVisibility(View.GONE);
 
@@ -195,25 +214,13 @@ public class ProfileFragment extends Fragment {
                 //this means that the user still hasn't set his name and email.
                 //start the name and email dialog:
                 Toast.makeText(getContext(), "NullPointerException2", Toast.LENGTH_SHORT).show();
-                emailAndNameDialogBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialog) {
-                        //and finally, update the UI:
-
-                        userName.setText(firebaseUser.getDisplayName());
-                        userEmail.setText(firebaseUser.getEmail());
-                        editTextPhone.setVisibility(View.GONE);
-                        confirmPhoneNumberButton.setVisibility(View.GONE);
-                    }
-                }).show();
+                emailAndNameDialogBuilder.show();
             }
 
         } else{
             //the user is not signed in yet.
             isSignedInView.setText("the user is not signed in");
         }
-
-
 
 
         //set the onClickListeners:
@@ -246,6 +253,7 @@ public class ProfileFragment extends Fragment {
                 try{
                     userName.setText(firebaseUser.getDisplayName());
                     userEmail.setText(firebaseUser.getEmail());
+                    textViewUserId.setText(firebaseUser.getUid());
                     editTextPhone.setVisibility(View.GONE);
                     confirmPhoneNumberButton.setVisibility(View.GONE);
 
@@ -253,19 +261,7 @@ public class ProfileFragment extends Fragment {
                     //this means that the user still hasn't set his name and email.
                     //start the name and email dialog:
                     Toast.makeText(getContext(), "NullPointerException2", Toast.LENGTH_SHORT).show();
-                    emailAndNameDialogBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                        @Override
-                        public void onDismiss(DialogInterface dialog) {
-                            //and finally, update the UI:
-
-                            userName.setText(firebaseUser.getDisplayName());
-                            userEmail.setText(firebaseUser.getEmail());
-                            editTextPhone.setVisibility(View.GONE);
-                            confirmPhoneNumberButton.setVisibility(View.GONE);
-                        }
-                    }).show();
-
-
+                    emailAndNameDialogBuilder.show();
                 }
             }
 
@@ -273,24 +269,26 @@ public class ProfileFragment extends Fragment {
 
 
         //for the sign-in with google button:
-        googleSignInButton.setOnClickListener(v -> {
-            //start a Google sign-in request:
-            /*
-            GetGoogleIdOption googleIdOption = new GetGoogleIdOption.Builder()
-                    .setFilterByAuthorizedAccounts(false)
-                    .setServerClientId(CLIENT_ID)
-                    .build();
-
-            //create the request with Credential:
-            GetCredentialRequest request = new GetCredentialRequest.Builder()
-                    .addCredentialOption(googleIdOption)
-                    .build();
-
-             */
+        updateInfoButton.setOnClickListener(v -> {
+            //show the update email and name dialog:
             emailAndNameDialogBuilder.show();
 
 
 
+
+            //start a Google sign-in request:
+                        /*
+                        GetGoogleIdOption googleIdOption = new GetGoogleIdOption.Builder()
+                                .setFilterByAuthorizedAccounts(false)
+                                .setServerClientId(CLIENT_ID)
+                                .build();
+
+                        //create the request with Credential:
+                        GetCredentialRequest request = new GetCredentialRequest.Builder()
+                                .addCredentialOption(googleIdOption)
+                                .build();
+
+                         */
 
 
             //signInWithGoogleId(request);
@@ -494,9 +492,6 @@ public class ProfileFragment extends Fragment {
         }
     }
 
-
-    //TODO: add the option for the user to change he's name and email.
-    //TODO: add google sign-in using the firebase authentication methods. Fuck this, I'm moving to SharedMemoFragment.
     //TODO: send a dialog that notifies the user about the SMS that is about to be sent.
-    //TODO: notify the user that for first-time sign-up, he need to use the google sign in. (for the name and Email)
+    //TODO: notify the user that for first-time sign-up, he need to update his info.
 }

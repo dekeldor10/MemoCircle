@@ -60,4 +60,7 @@ dependencies {
     implementation libs.googleid
     //implementation libs.play.services.auth
 
+    //implementations for firebase realtime database:
+    implementation libs.firebase.database
+
 }

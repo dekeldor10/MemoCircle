@@ -27,6 +27,12 @@
         android:text="userName" />
 
     <TextView
+        android:id="@+id/textViewUserId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="UserID" />
+
+    <TextView
         android:id="@+id/userEmail"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -48,11 +54,11 @@
         android:text="send SMS" />
 
     <Button
-        android:id="@+id/googleSignInButton"
+        android:id="@+id/updateInfoButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="50dp"
-        android:text="Sign-in With Google" />
+        android:text="Update Name and E-mail" />
 
     <Button
         android:id="@+id/signOutButton"
