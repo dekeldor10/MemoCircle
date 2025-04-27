@@ -122,13 +122,13 @@ public class ProfileFragment extends Fragment {
         Button signOutButton = view.findViewById(R.id.signOutButton);
         Button updateInfoButton = view.findViewById(R.id.updateInfoButton);
 
-        //instance the mAuth as an instance of FirebaseAuth:
+        //mAuth as an instance of FirebaseAuth:
         mAuth = FirebaseAuth.getInstance();
         //instance the CredentialManager:
         credentialManager = CredentialManager.create(requireContext());
         //instance the FirebaseDatabase:
         database = FirebaseDatabase.getInstance("https://memocircle-ac0c1-default-rtdb.europe-west1.firebasedatabase.app/"); //the correct URL of the database.
-        //instance the DatabaseReference for the users:
+        //instance the DatabaseReference for the users node:
         usersDatabaseReference = database.getReference("users");
 
 
@@ -168,6 +168,7 @@ public class ProfileFragment extends Fragment {
                             }
 
                             //update the user's info in the database:
+                            // (if this is a new user, it will automatically create it in the users node.)
                             usersDatabaseReference.child(firebaseUser.getUid()).setValue(firebaseUser.getDisplayName());
 
                         }

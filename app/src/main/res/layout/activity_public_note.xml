@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".NoteActivity">
+    tools:context=".PublicNoteActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -14,70 +14,60 @@
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/returnButton"
+            android:id="@+id/publicReturnButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="start"
             android:layout_weight=".5"
-            android:text="return" />
-
+            android:text="Return" />
         <Space
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_weight="10" />
+            android:layout_weight="10"/>
 
         <Button
-            android:id="@+id/deleteButton"
+            android:id="@+id/publicDeleteButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:layout_weight=".5"
-            android:text="delete" />
-
+            android:text="Delete" />
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="PublicNoteActivity" />
 
+    <TextView
+        android:id="@+id/noteIdTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="TextView" />
 
     <EditText
-        android:id="@+id/titleEditText"
+        android:id="@+id/publicTitleEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:hint="Title"
-        android:inputType="text"
-        android:textSize="24sp" />
+        android:hint="note title"
+        android:inputType="text" />
 
     <EditText
-        android:id="@+id/textContentEditText"
+        android:id="@+id/publicBodyEditTextMultiLine"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
         android:gravity="start|top"
-        android:hint="Note"
-        android:inputType="textMultiLine"
-        android:textSize="16sp" />
+        android:hint="note body"
+        android:inputType="textMultiLine" />
 
-    <ImageView
-        android:id="@+id/testingImageView"
-        android:layout_width="match_parent"
-        android:layout_height="500dp" />
-
-    <LinearLayout
+    <Button
+        android:id="@+id/updatePublicNoteButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:text="update note" />
 
-        <ImageButton
-            android:id="@+id/addImageButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:srcCompat="@android:drawable/ic_menu_gallery" />
-
-        <Button
-            android:id="@+id/saveNoteButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Save Note" />
-    </LinearLayout>
 
 </LinearLayout>

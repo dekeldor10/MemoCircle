@@ -92,7 +92,7 @@ public class PersonalMemoFragment extends Fragment {
         new Thread(() -> {
            Note[] noteArr = noteDao.getAllNotes();
 
-           //create a String arr of the titles:
+           //create a String arr of the titles: (hypothetically, possible to be done with a for-each loop)
             String[] notesTitlesArr = new String[noteArr.length];
             for(int i = 0; i < noteArr.length; i++){{
                 notesTitlesArr[i] = noteArr[i].getTitle();
@@ -130,5 +130,5 @@ public class PersonalMemoFragment extends Fragment {
 
         return view;
     }
-    //TODO: something is wrong. for some reason, the app asks me to pick a number of images every time i open a saved note. Check later
+    //TODO: ListView is outdated and should be replaced before final version.
 }
