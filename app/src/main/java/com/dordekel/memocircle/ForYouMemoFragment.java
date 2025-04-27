@@ -107,8 +107,9 @@ public class ForYouMemoFragment extends Fragment {
         Intent publicNoteActivityIntent = new Intent(getActivity(), PublicNoteActivity.class);
 
         //get the public notes from the database: (to a list)
-        List<String> publicNotesTitlesArr = new ArrayList<>();
-        ArrayList<String> publicNotesIdsArr = new ArrayList<>();
+        List<String> publicNotesIdsArr = new ArrayList<>();
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_selectable_list_item, new ArrayList<>());
+        publicNotesListView.setAdapter(adapter);
         //displaying the notes in the ListView:
         publicNotesDatabaseReference.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() { //access all notes in publicNotes node
             @Override
@@ -129,30 +130,22 @@ public class ForYouMemoFragment extends Fragment {
                                     public void onComplete(@NonNull Task<DataSnapshot> task) { //do stuff with the title
                                         if(task.isSuccessful()){
                                             Log.d("FirebaseDebug", "Title: " + task.getResult().getValue(String.class));
-                                            publicNotesTitlesArr.add(task.getResult().getValue(String.class));
+                                            adapter.add(task.getResult().getValue(String.class));
                                             publicNotesIdsArr.add(snapshot.getKey());
-                                        }
-                                        completedNotes[0]++;
-                                        if(completedNotes[0] == publicNotesNum){
-                                            //now, i can be sure that it is done.
-                                            Log.d("FirebaseDebug", "All done");
-                                            ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_selectable_list_item, publicNotesTitlesArr);
-
-                                            publicNotesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() { //launch the correct public note when a note is clicked:
-                                                @Override
-                                                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                                                    String noteId = publicNotesIdsArr.get(position);
-                                                    //Log.d("FirebaseDebug", "noteID: " + noteId);
-                                                    publicNoteActivityIntent.putExtra("publicNoteId", noteId);
-                                                    startActivity(publicNoteActivityIntent);
-                                                }
-                                            });
-
-                                            publicNotesListView.setAdapter(adapter);
                                         }
                                     }
                                 });
                     }
+                    publicNotesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() { //launch the correct public note when a note is clicked:
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            String noteId = publicNotesIdsArr.get(position);
+                            //Log.d("FirebaseDebug", "noteID: " + noteId);
+                            publicNoteActivityIntent.putExtra("publicNoteId", noteId);
+                            startActivity(publicNoteActivityIntent);
+                        }
+                    });
+
                 }
             }
         });

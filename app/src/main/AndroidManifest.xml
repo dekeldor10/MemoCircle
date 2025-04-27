@@ -19,6 +19,9 @@
         android:theme="@style/Theme.MemoCircle"
         tools:targetApi="31">
         <activity
+            android:name=".SharedNoteActivity"
+            android:exported="false" />
+        <activity
             android:name=".PublicNoteActivity"
             android:exported="false" />
 

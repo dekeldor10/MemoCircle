@@ -84,13 +84,12 @@ public class PublicNoteActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<DataSnapshot> task) {
                         noteOwner[0] = task.getResult().getValue(String.class);
                         isOwner[0] = (firebaseUser.getUid().equals(noteOwner[0]));
+                        //if not, hide the delete button:
+                        if(!isOwner[0]){
+                            publicDeleteButton.setVisibility(View.GONE);
+                        }
                     }
                 });
-        //if not, hide the delete button:
-        if(!isOwner[0]){
-            publicDeleteButton.setVisibility(View.GONE);
-        }
-
 
         //show the content of the note in the editTexts:
         Toast.makeText(this, "getting note contents...", Toast.LENGTH_SHORT).show(); //TODO: make it better
@@ -120,7 +119,7 @@ public class PublicNoteActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //retrieve and save the data:
                 Map<String, Object> publicNoteInfo = new HashMap<>();
-                final boolean[] isUpdatingDone = {false};
+                final boolean[] isUpdatingDone = {true};
                 final boolean[] isReadingDone = {false};
 
 
