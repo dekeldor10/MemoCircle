@@ -6,4 +6,5 @@ Before you run the app on your device or read the code itself, there are a few t
 First User: phone number: +11234567891, SMS authntication code: 111222.
 Second User: phone number: +11234567892, SMS authentication code: 123123.
 
+I'll fix those things in time for the Bagrut. Enjoy! I had fun making this app.
 
