@@ -14,6 +14,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -30,11 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link SharedMemoFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+
 public class SharedMemoFragment extends Fragment {
 
     static FirebaseUser firebaseUser;
@@ -45,44 +42,15 @@ public class SharedMemoFragment extends Fragment {
     DatabaseReference sharedNotesPermissionsDatabaseReference;
     DatabaseReference noteContentsDatabaseReference;
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
 
     public SharedMemoFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment SharedMemoFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static SharedMemoFragment newInstance(String param1, String param2) {
-        SharedMemoFragment fragment = new SharedMemoFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
@@ -93,7 +61,7 @@ public class SharedMemoFragment extends Fragment {
 
         //Initialize firebase-related objects:
         firebaseAuth = FirebaseAuth.getInstance();
-        firebaseUser = firebaseAuth.getCurrentUser(); //TODO: make sure this isnt null!
+        firebaseUser = firebaseAuth.getCurrentUser();
         database = FirebaseDatabase.getInstance("https://memocircle-ac0c1-default-rtdb.europe-west1.firebasedatabase.app/");
         usersDatabaseReference = database.getReference("users");
         sharedNotesDatabaseReference = database.getReference("sharedNotes");
@@ -103,6 +71,9 @@ public class SharedMemoFragment extends Fragment {
         //initialize views:
         Button createSharedNoteButton = view.findViewById(R.id.createSharedNoteButton);
         ListView sharedNotesListView = view.findViewById(R.id.sharedNotesListView);
+        TextView messageTextView = view.findViewById(R.id.messageTextView);
+        //by default, hide the message text view:
+        messageTextView.setVisibility(View.GONE);
 
         //the intent to move to SharedNoteActivity:
         Intent sharedNoteActivityIntent = new Intent(getActivity(), SharedNoteActivity.class);
@@ -112,54 +83,63 @@ public class SharedMemoFragment extends Fragment {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_selectable_list_item, new ArrayList<>()); // Initialize adapter with an empty list
         sharedNotesListView.setAdapter(adapter); // Set the adapter initially
 
-        sharedNotesDatabaseReference.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() { //get all of the notes under the sharedNotes node
-            @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if (task.isSuccessful()) {
-                    final int[] allowedNotesCount = {0};
-                    for (DataSnapshot snapshot : task.getResult().getChildren()) { //for each note
-                        String noteId = snapshot.getKey();
-                        sharedNotesPermissionsDatabaseReference.child(noteId).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() { //get the allowed users under this note'sId
-                            @Override
-                            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                                if (task.isSuccessful()) {
-                                    for (DataSnapshot userSnapshot : task.getResult().getChildren()) { //for each user in this note
-                                        if (userSnapshot.getKey().equals(firebaseUser.getUid()) && userSnapshot.getValue(Boolean.class)) { //if the user is there and allowed
-                                            Log.d("FirebaseDebug", "User is allowed to: " + noteId);
-                                            allowedNotesCount[0]++;
-                                            sharedNotesIdsArr.add(noteId); //add the noteId to the list
-                                            noteContentsDatabaseReference.child(noteId).child("noteTitle").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() { //get the title of this note
-                                                @Override
-                                                public void onComplete(@NonNull Task<DataSnapshot> task) {
-                                                    if (task.isSuccessful()) {
-                                                        String title = task.getResult().getValue(String.class);
-                                                        Log.d("FirebaseDebug", "Title: " + title);
-                                                        adapter.add(title); // add directly to the adapter
+
+        if(firebaseUser == null){
+            //the user isn't signed in. cant continue.
+            createSharedNoteButton.setVisibility(View.GONE);
+            sharedNotesListView.setVisibility(View.GONE);
+            //show the message:
+            messageTextView.setVisibility(View.VISIBLE);
+        }else {
+            sharedNotesDatabaseReference.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() { //get all of the notes under the sharedNotes node
+                @Override
+                public void onComplete(@NonNull Task<DataSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        final int[] allowedNotesCount = {0};
+                        for (DataSnapshot snapshot : task.getResult().getChildren()) { //for each note
+                            String noteId = snapshot.getKey();
+                            sharedNotesPermissionsDatabaseReference.child(noteId).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() { //get the allowed users under this note'sId
+                                @Override
+                                public void onComplete(@NonNull Task<DataSnapshot> task) {
+                                    if (task.isSuccessful()) {
+                                        for (DataSnapshot userSnapshot : task.getResult().getChildren()) { //for each user in this note
+                                            if (userSnapshot.getKey().equals(firebaseUser.getUid()) && userSnapshot.getValue(Boolean.class)) { //if the user is there and allowed
+                                                Log.d("FirebaseDebug", "User is allowed to: " + noteId);
+                                                allowedNotesCount[0]++;
+                                                sharedNotesIdsArr.add(noteId); //add the noteId to the list
+                                                noteContentsDatabaseReference.child(noteId).child("noteTitle").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() { //get the title of this note
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<DataSnapshot> task) {
+                                                        if (task.isSuccessful()) {
+                                                            String title = task.getResult().getValue(String.class);
+                                                            Log.d("FirebaseDebug", "Title: " + title);
+                                                            adapter.add(title); // add directly to the adapter
+                                                        }
                                                     }
-                                                }
-                                            });
-                                            break; // exit inner permission loop and go to the next user in this note
+                                                });
+                                                break; // exit inner permission loop and go to the next user in this note
+                                            }
                                         }
                                     }
                                 }
+                            });
+                            Log.d("FirebaseDebug", "iterated");
+                        }
+
+                        //set the click listener for each item in the list view:
+                        sharedNotesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                            @Override
+                            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                                String noteId = sharedNotesIdsArr.get(position);
+                                sharedNoteActivityIntent.putExtra("sharedNoteId", noteId);
+                                startActivity(sharedNoteActivityIntent);
                             }
                         });
-                        Log.d("FirebaseDebug", "iterated");
                     }
-
-                    //set the click listener for each item in the list view:
-                    sharedNotesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                        @Override
-                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                            String noteId = sharedNotesIdsArr.get(position);
-                            sharedNoteActivityIntent.putExtra("sharedNoteId", noteId);
-                            startActivity(sharedNoteActivityIntent);
-                        }
-                    });
                 }
-            }
-        });
-        Toast.makeText(getContext(), "Searching for notes shared with you...", Toast.LENGTH_SHORT).show(); //TODO: make it prettier and more real (some sort of loading screen)
+            });
+            Toast.makeText(getContext(), "Searching for notes shared with you...", Toast.LENGTH_SHORT).show(); //TODO: make it prettier and more real (some sort of loading screen)
+        }
 
         //create a new shared note:
         createSharedNoteButton.setOnClickListener(new View.OnClickListener() {

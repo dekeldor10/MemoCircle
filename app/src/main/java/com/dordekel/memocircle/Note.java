@@ -1,11 +1,6 @@
 package com.dordekel.memocircle;
 
-import android.graphics.Bitmap;
-import android.net.Uri;
-
-import androidx.room.ColumnInfo;
 import androidx.room.Entity;
-import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 //declare the class as an entity.

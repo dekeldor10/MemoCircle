@@ -70,7 +70,7 @@ public class PublicNoteActivity extends AppCompatActivity {
         Button updatePublicNoteButton = findViewById(R.id.updatePublicNoteButton);
 
         //intent to return to the MainActivity:
-        Intent returnIntent = new Intent(PublicNoteActivity.this, MainActivity.class); //TODO: in the future, make it return specifically to the ForYou Fragment.
+        Intent returnIntent = new Intent(PublicNoteActivity.this, MainActivity.class);
 
         //receive the publicNoteID:
         String publicNoteId = getIntent().getStringExtra("publicNoteId");
@@ -92,7 +92,7 @@ public class PublicNoteActivity extends AppCompatActivity {
                 });
 
         //show the content of the note in the editTexts:
-        Toast.makeText(this, "getting note contents...", Toast.LENGTH_SHORT).show(); //TODO: make it better
+        Toast.makeText(this, "getting note contents...", Toast.LENGTH_SHORT).show();
 
         noteContentsDatabaseReference.child(publicNoteId).child("noteTitle").get()
                 .addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
@@ -152,6 +152,7 @@ public class PublicNoteActivity extends AppCompatActivity {
                     });
 
                 //i'll skip the tags for now TODO: add them later.
+
                 publicNoteInfo.put("noteTimeLastEditedStamp", ServerValue.TIMESTAMP);
                 publicNotesDatabaseReference.child(publicNoteId).updateChildren(publicNoteInfo)
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -256,6 +257,7 @@ public class PublicNoteActivity extends AppCompatActivity {
                         });
 
                 //i'll skip the tags for now TODO: add them later.
+
                 publicNoteInfo.put("noteTimeLastEditedStamp", ServerValue.TIMESTAMP);
                 publicNotesDatabaseReference.child(publicNoteId).updateChildren(publicNoteInfo); //dont need a listener, as i dont do anything after updating.
 

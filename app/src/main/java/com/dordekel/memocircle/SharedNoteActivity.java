@@ -56,7 +56,7 @@ public class SharedNoteActivity extends AppCompatActivity {
 
         //Initialize firebase-related objects:
         firebaseAuth = FirebaseAuth.getInstance();
-        firebaseUser = firebaseAuth.getCurrentUser(); //TODO: make sure this isnt null!
+        firebaseUser = firebaseAuth.getCurrentUser();
         database = FirebaseDatabase.getInstance("https://memocircle-ac0c1-default-rtdb.europe-west1.firebasedatabase.app/");
         usersDatabaseReference = database.getReference("users");
         sharedNotesDatabaseReference = database.getReference("sharedNotes");
@@ -73,7 +73,7 @@ public class SharedNoteActivity extends AppCompatActivity {
         Button sharedUpdateNoteButton = findViewById(R.id.sharedUpdateNoteButton);
 
         //intent to return to the MainActivity:
-        Intent returnIntent = new Intent(SharedNoteActivity.this, MainActivity.class); //TODO: in the future, make it return specifically to the Shared Memo Fragment.
+        Intent returnIntent = new Intent(SharedNoteActivity.this, MainActivity.class);
 
         //receive the sharedNoteID:
         String sharedNoteId = getIntent().getStringExtra("sharedNoteId");
@@ -97,7 +97,7 @@ public class SharedNoteActivity extends AppCompatActivity {
                 });
 
         //show the content of the note in the editTexts:
-        Toast.makeText(this, "getting note contents...", Toast.LENGTH_SHORT).show(); //TODO: make it better
+        Toast.makeText(this, "getting note contents...", Toast.LENGTH_SHORT).show();
 
         noteContentsDatabaseReference.child(sharedNoteId).child("noteTitle").get()
                 .addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
@@ -115,22 +115,38 @@ public class SharedNoteActivity extends AppCompatActivity {
                     }
                 });
 
-        //show the allowed users: //TODO: add a allowed users view
-        /*
-        String[] allowedUsernamesList = {firebaseUser.getDisplayName()}; //the current user is obviously allowed
+        //show the allowed users:
+
+        final List<String> allowedUsernamesIdList = new ArrayList<>();
+        allowedUsernamesIdList.add(firebaseUser.getUid()); //the current user is obviously allowed
         sharedNotesPermissionsDatabaseReference.child(sharedNoteId).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() { //the users inside the note's permissions
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
                 for(DataSnapshot userSnapshot : task.getResult().getChildren()){ //for each of the users
                     if(userSnapshot.getValue(Boolean.class)){ //if the user is allowed to edit the note
-                        allowedUsernamesList[0] += ", " + userSnapshot.getKey();
+                        allowedUsernamesIdList.add(userSnapshot.getKey()); //add the user's ID to the list
                     }
                 }
-                usersListTextView.setText(allowedUsernamesList[0]);
+
+            }
+        });
+        final String[] allowedUsernames = {" " + firebaseUser.getDisplayName()};
+        //get the usernames for the allowed users (bu ID):
+        usersDatabaseReference.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                for(DataSnapshot userSnapshot : task.getResult().getChildren()) { //for every user in this node
+                    if(allowedUsernamesIdList.contains(userSnapshot.getKey()) && !userSnapshot.getKey().equals(firebaseUser.getUid())){ //if the user is allowed to edit the note
+                        allowedUsernames[0] += ", " + userSnapshot.getValue(String.class);
+                        Log.d("FirebaseAA", "allowed user: " + allowedUsernames[0]);
+                    }
+                }
+                usersListTextView.setText(allowedUsernames[0]);
             }
         });
 
-         */
+
+
 
 
         //working with the multiAutoCompleteTextView:
@@ -144,7 +160,6 @@ public class SharedNoteActivity extends AppCompatActivity {
                     usersIdList.add(userSnapshot.getKey());
                     adapter.add(userSnapshot.getValue(String.class));
                 }
-                //Log.d("FirebaseDebug", "users list ID: " + usersIdList);
             }
         });
         usersCompleteTextView.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
@@ -210,12 +225,7 @@ public class SharedNoteActivity extends AppCompatActivity {
                             }
                         });
 
-
-                ///PAY ATTENTION: i'll update the users allowed immediately as you choose them. //TODO: make sure i really am.
-
                 sharedNotesDatabaseReference.child(sharedNoteId).updateChildren(sharedNoteInfo);
-
-
             }
         });
 

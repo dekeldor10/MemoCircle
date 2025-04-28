@@ -6,12 +6,6 @@
     android:orientation="vertical"
     tools:context=".ProfileFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="sign-in with phone number or via Google" />
 
     <TextView
         android:id="@+id/isSignedIn"
@@ -44,7 +38,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:hint="Your phone number for SMS authentication"
+        android:hint="Your phone number for SMS user authentication and sign-in"
         android:inputType="phone" />
 
     <Button

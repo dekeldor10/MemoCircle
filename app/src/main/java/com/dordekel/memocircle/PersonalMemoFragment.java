@@ -1,66 +1,31 @@
 package com.dordekel.memocircle;
 
 import android.content.Intent;
+import android.graphics.Rect;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link PersonalMemoFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class PersonalMemoFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    Intent noteIntent;
 
     public PersonalMemoFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment PersonalMemoFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static PersonalMemoFragment newInstance(String param1, String param2) {
-        PersonalMemoFragment fragment = new PersonalMemoFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
@@ -73,13 +38,15 @@ public class PersonalMemoFragment extends Fragment {
         AppDatabase db = AppDatabase.getInstance(getContext());
         NoteDao noteDao = db.noteDao();
 
-        //declare the buttons
+        //declare the views
         Button newNoteButton = view.findViewById(R.id.newNoteButton);
-        ListView notesListView = view.findViewById(R.id.notesListView);
-        //TextView textView = view.findViewById(R.id.textView);
+        RecyclerView notesRecyclerView = view.findViewById(R.id.notesRecyclerView);
+
+        //declare the adapter for the RecyclerView:
+        PersonalNotesRecyclerAdapter adapter = new PersonalNotesRecyclerAdapter(getContext(), noteDao.getAllNotes(), listener);
 
         //create the intent for the NoteActivity (used multiple times in this fragment):
-        Intent noteIntent = new Intent(getActivity(), NoteActivity.class);
+        noteIntent = new Intent(getActivity(), NoteActivity.class);
 
         //set the onClickListeners
         newNoteButton.setOnClickListener(v -> {
@@ -88,47 +55,41 @@ public class PersonalMemoFragment extends Fragment {
             startActivity(noteIntent);
         });
 
-        //retrieving data from database should be done under a thread
-        new Thread(() -> {
-           Note[] noteArr = noteDao.getAllNotes();
 
-           //create a String arr of the titles: (hypothetically, possible to be done with a for-each loop)
-            String[] notesTitlesArr = new String[noteArr.length];
-            for(int i = 0; i < noteArr.length; i++){{
-                notesTitlesArr[i] = noteArr[i].getTitle();
-            }}
+        //new RecyclerView with CardView layout:
 
-            //use an ArrayAdapter, with a built-in layout (for simplicity for now, this will be changed)
-            ArrayAdapter<String> adapter = new ArrayAdapter<>
-                    (getContext(), android.R.layout.simple_selectable_list_item, notesTitlesArr);
+        //some settings:
+        notesRecyclerView.setHasFixedSize(true);
+        notesRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, LinearLayoutManager.VERTICAL));
+        notesRecyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void getItemOffsets(@NonNull Rect outRect, @NonNull View view,
+                                       @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
+                int space = 10; // pixels (not dp)
+                outRect.left = space;
+                outRect.right = space;
+                outRect.top = space;
+                outRect.bottom = space;
+            }
+        });
+        //set the adapter:
+        notesRecyclerView.setAdapter(adapter);
 
-            //onClick for a note (item in the ListView):
-            notesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                    //get item title in order to find the note from the database via a query (specified in the DAO)
-                    String noteTitle = adapter.getItem(position);
-
-                    //use the existing noteIntent:
-                    //the NoteActivity should know if this is a new note or not.
-                    //do this by adding another putExtra here, where it specifies what initiated the intent (pressing a note or creating a new one)
-                    noteIntent.putExtra("isNewNote", false);
-                    //pass the noteID to the NoteActivity via putExtra
-                    noteIntent.putExtra("noteID", noteArr[position].getNoteId());
-
-                    //start the NoteActivity:
-                    startActivity(noteIntent);
-
-                }
-            });
-
-
-            //set the adapter on the ListView. this will display the list of notes.
-            notesListView.setAdapter(adapter);
-
-        }).start();
 
         return view;
     }
-    //TODO: ListView is outdated and should be replaced before final version.
+
+    private final PersonalNotesRecyclerAdapter.PersonalNoteClickListener listener = new PersonalNotesRecyclerAdapter.PersonalNoteClickListener() {
+        @Override
+        public void onPersonalNoteClick(Note note) {
+            noteIntent.putExtra("isNewNote", false);
+            //pass the noteID to the NoteActivity via putExtra - again, retrieving data from the room database should be done under a new thread.
+            new Thread(() -> {
+                noteIntent.putExtra("noteID", note.getNoteId());
+            }).start();
+
+            //start the NoteActivity:
+            startActivity(noteIntent);
+        }
+    };
 }

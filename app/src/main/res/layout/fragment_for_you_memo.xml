@@ -26,4 +26,13 @@
         android:layout_marginBottom="20dp"
         android:text="add new public note" />
 
+    <TextView
+        android:id="@+id/publicMessageTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textSize="42sp"
+        android:text="Sign-In To Continue"
+        android:textColor="@color/md_light_theme_error" />
+
 </FrameLayout>

@@ -2,14 +2,12 @@ package com.dordekel.memocircle;
 
 import android.os.Bundle;
 import android.widget.Button;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.fragment.app.FragmentTransaction;
 //MainActivity is used for fragment navigation.
 public class MainActivity extends AppCompatActivity {
 
@@ -78,6 +76,4 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
-    //TODO: if the user has not signed-in with google yet, remind him that he can only use the private, on-device part of the app.
-    // To unlock all features, he should authenticate with google.
 }

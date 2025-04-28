@@ -2,7 +2,6 @@ package com.dordekel.memocircle;
 
 import android.Manifest;
 import android.app.PendingIntent;
-import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -26,7 +25,6 @@ import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.PickVisualMediaRequest;
-import androidx.activity.result.contract.ActivityResultContract;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -34,8 +32,6 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
@@ -218,7 +214,6 @@ public class NoteActivity extends AppCompatActivity {
                 //use URI as google suggests (bonus: gives higher-definition pictures).
                 try {
                     testingImageView.setImageBitmap(uriToBitmap(imageUri));
-                    //Toast.makeText(this, "takePersistablePermission", Toast.LENGTH_SHORT).show();
                     //resolver.takePersistableUriPermission(imageUri, takeFlags);
                     resultImgUriString = imageUri.toString();
                     testingImageView.setVisibility(View.VISIBLE);
@@ -249,7 +244,7 @@ public class NoteActivity extends AppCompatActivity {
                     Toast.makeText(this, resultImgUriString, Toast.LENGTH_LONG).show();
                 } catch (IOException e) {
                     e.printStackTrace();
-                    Toast.makeText(this, "not", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "An Error occurred", Toast.LENGTH_SHORT).show();
                 }
             }
         }

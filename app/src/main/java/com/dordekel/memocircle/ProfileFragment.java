@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.credentials.CredentialManager;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -30,32 +29,18 @@ import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthOptions;
 import com.google.firebase.auth.PhoneAuthProvider;
 import com.google.firebase.auth.UserProfileChangeRequest;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.concurrent.TimeUnit;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link ProfileFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class ProfileFragment extends Fragment {
 
-    //variables for google sign-in (old):
-    private static final String TAG = "GoogleSignIn";
-    private static final String CLIENT_ID = "656786178012-a0cef1oek69fknl4dn9ig9lejh725ooh.apps.googleusercontent.com";
+public class ProfileFragment extends Fragment {
 
     //new variables for authentication with firebase:
     private FirebaseAuth mAuth;
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks mPhoneCallbacks;
-    private PhoneAuthProvider.ForceResendingToken mResendToken;
     private PhoneAuthCredential mPhoneAuthCredential;
-    private CredentialManager credentialManager;
-    private SignInClient signInClient;
     static FirebaseUser firebaseUser; //not originally static, make sure it doesn't cause problems.
     FirebaseDatabase database;
     DatabaseReference usersDatabaseReference;
@@ -64,46 +49,19 @@ public class ProfileFragment extends Fragment {
     String userVerificationCode;
     boolean isSignInButton = false;
 
+    TextView isSignedInView, textViewUserId, userName, userEmail;
+    Button updateInfoButton, confirmPhoneNumberButton;
+    EditText editTextPhone;
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
 
     public ProfileFragment() {
         // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment ProfileFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static ProfileFragment newInstance(String param1, String param2) {
-        ProfileFragment fragment = new ProfileFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
     }
 
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
@@ -113,19 +71,17 @@ public class ProfileFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
         //declare all the views objects:
-        TextView userName = view.findViewById(R.id.userName);
-        TextView userEmail = view.findViewById(R.id.userEmail);
-        TextView isSignedInView = view.findViewById(R.id.isSignedIn);
-        TextView textViewUserId = view.findViewById(R.id.textViewUserId);
-        EditText editTextPhone = view.findViewById(R.id.editTextPhone);
-        Button confirmPhoneNumberButton = view.findViewById(R.id.confirmPhoneNumberButton);
+        userName = view.findViewById(R.id.userName);
+        userEmail = view.findViewById(R.id.userEmail);
+        isSignedInView = view.findViewById(R.id.isSignedIn);
+        textViewUserId = view.findViewById(R.id.textViewUserId);
+        editTextPhone = view.findViewById(R.id.editTextPhone);
+        confirmPhoneNumberButton = view.findViewById(R.id.confirmPhoneNumberButton);
         Button signOutButton = view.findViewById(R.id.signOutButton);
-        Button updateInfoButton = view.findViewById(R.id.updateInfoButton);
+        updateInfoButton = view.findViewById(R.id.updateInfoButton);
 
         //mAuth as an instance of FirebaseAuth:
         mAuth = FirebaseAuth.getInstance();
-        //instance the CredentialManager:
-        credentialManager = CredentialManager.create(requireContext());
         //instance the FirebaseDatabase:
         database = FirebaseDatabase.getInstance("https://memocircle-ac0c1-default-rtdb.europe-west1.firebasedatabase.app/"); //the correct URL of the database.
         //instance the DatabaseReference for the users node:
@@ -186,12 +142,9 @@ public class ProfileFragment extends Fragment {
             //update the user in firebase:
             mAuth.updateCurrentUser(firebaseUser);
 
-            //notify the user:
-            //Toast.makeText(getContext(), "Name and e-mail updated successfully", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         });
         emailAndNameDialogBuilder.setNegativeButton("Cancel", (dialog, which) -> {
-            // TODO: notify the user that this is important in another dialog. i dont have time for this now.
             //dismiss the dialog:
             dialog.dismiss();
         }).create();
@@ -221,6 +174,7 @@ public class ProfileFragment extends Fragment {
         } else{
             //the user is not signed in yet.
             isSignedInView.setText("the user is not signed in");
+            updateInfoButton.setVisibility(View.GONE);
         }
 
 
@@ -271,77 +225,11 @@ public class ProfileFragment extends Fragment {
 
         //for the sign-in with google button:
         updateInfoButton.setOnClickListener(v -> {
+            //set the fields to the curent values from the database:
+            editTextName.setText(firebaseUser.getDisplayName());
+            editTextEmail.setText(firebaseUser.getEmail());
             //show the update email and name dialog:
             emailAndNameDialogBuilder.show();
-
-
-
-
-            //start a Google sign-in request:
-                        /*
-                        GetGoogleIdOption googleIdOption = new GetGoogleIdOption.Builder()
-                                .setFilterByAuthorizedAccounts(false)
-                                .setServerClientId(CLIENT_ID)
-                                .build();
-
-                        //create the request with Credential:
-                        GetCredentialRequest request = new GetCredentialRequest.Builder()
-                                .addCredentialOption(googleIdOption)
-                                .build();
-
-                         */
-
-
-            //signInWithGoogleId(request);
-
-            /*
-            //start the sign-in process:
-            credentialManager.getCredentialAsync(
-                    request,
-                    requireActivity(), // This must be a FragmentActivity!
-                    ContextCompat.getMainExecutor(requireContext())
-            ).thenAccept(result -> {
-                Credential credential = result.getCredential();
-
-                if (credential instanceof PublicKeyCredential) {
-                    // This is WebAuthn
-                } else if (credential instanceof GoogleIdTokenCredential) {
-                    String idToken = ((GoogleIdTokenCredential) credential).getIdToken();
-
-                    // Sign in with Firebase
-                    authorizeWithFirebaseGoogle(idToken);
-                }
-            }).exceptionally(e -> {
-                Log.e("Credential", "Error: " + e);
-                return null;
-            });
-
-             */
-
-
-
-            //start the sign-in process with a CredentialManager and it's callbacks:
-            //unfortunately, the getCredential method has some Kotlin-specific requirements and code, making it unavailable to use here..
-            //I'll bypass that with Java code, using Task from Google Play services API - which represents an asynchronous operation..
-
-            //in green: the code i shared with StackOverflow.
-            /**
-            if(isAdded()){
-                getGoogleCredentialTask(requireContext())
-                        .addOnSuccessListener(response -> {
-                            Credential credential = response.getCredential();
-                            signInWithGoogleId(credential);
-                        })
-                        .addOnFailureListener(e -> {
-                            Log.e(TAG, "Google sign-in failed" + e);
-                            Toast.makeText(getContext(), "Google sign-in failed: " + e, Toast.LENGTH_SHORT).show();
-                        });
-            }
-
-             **/
-
-
-
         });
 
 
@@ -386,9 +274,8 @@ public class ProfileFragment extends Fragment {
                 //the app needs to ask the user for the verification code sent via SMS,
                 //and construct a credential with the code and the verificationID.
                 Toast.makeText(getContext(), "Code has been sent. lease check your SMS app.", Toast.LENGTH_SHORT).show();
-                //save the verificationID and the forceResendingToken for later use.
+                //save the verificationID and for later use.
                 mVerificationId = verificationId;
-                mResendToken = forceResendingToken;
 
                 //update the editTextPhone to input the verification code by the user:
                 editTextPhone.setText("");
@@ -403,52 +290,6 @@ public class ProfileFragment extends Fragment {
     }
 
 
-    /**
-    //the method to initiate google sign-in with the given GoogleID credential:
-    private void signInWithGoogleId(Credential credential){
-        //make sure the given credential is a GoogleID credential: (might need to update the Java JDK)
-        if(credential instanceof CustomCredential && credential.getType().equals(TYPE_GOOGLE_ID_TOKEN_CREDENTIAL)){
-            //create GoogleID token from the credential:
-            CustomCredential customCredential = (CustomCredential) credential;
-            Bundle bundle = customCredential.getData();
-            GoogleIdTokenCredential googleIdTokenCredential = GoogleIdTokenCredential.createFrom(bundle);
-
-            //authorize with firebase: with a method.
-            authorizeWithFirebaseGoogle(googleIdTokenCredential.getIdToken());
-
-        } else{
-            Toast.makeText(getContext(), "Credential type is not of GoogleID!", Toast.LENGTH_SHORT).show();
-        }
-
-    }
-     **/
-
-    /**
-    //the method handling and returning the appropriate Task for the googleID sign-in process:
-    private Task<GetCredentialResponse> getGoogleCredentialTask(Context context) {
-        TaskCompletionSource<GetCredentialResponse> taskCompletionSource = new TaskCompletionSource<>();
-
-        GetGoogleIdOption googleIdOption = new GetGoogleIdOption.Builder()
-                .setFilterByAuthorizedAccounts(false)
-                .setServerClientId(CLIENT_ID)
-                .build();
-
-        GetCredentialRequest request = new GetCredentialRequest.Builder()
-                .addCredentialOption(googleIdOption)
-                .build();
-
-        Executor executor = context != null ? ContextCompat.getMainExecutor(context) : Runnable::run;
-
-        credentialManager.getCredential(requireActivity(), request)
-                .addOnSuccessListener(executor, taskCompletionSource::setResult)
-                .addOnFailureListener(executor, taskCompletionSource::setException);
-
-
-        return taskCompletionSource.getTask();
-    }
-     **/
-
-
     //the method to sign the user in with the given phone credential (final step):
     private void signInWithPhoneAuthCredential(PhoneAuthCredential phoneAuthCredential){
         mAuth.signInWithCredential(phoneAuthCredential).addOnCompleteListener(requireActivity(), new OnCompleteListener<AuthResult>() {
@@ -458,21 +299,7 @@ public class ProfileFragment extends Fragment {
             }
         });
     }
-    /**
-    //the method to authorize with firebase with a GoogleID token (final step):
-    private void authorizeWithFirebaseGoogle(String idToken){
-        AuthCredential authCredential = GoogleAuthProvider.getCredential(idToken, null);
-        mAuth.signInWithCredential(authCredential).addOnCompleteListener(requireActivity(), new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                handleSignInResult(task);
-            }
-        });
-    }
-     **/
 
-
-    /** this one too:**/
     //unified result handle method for both sign-in methods:
     private void handleSignInResult(Task<AuthResult> task){
         if(task.isSuccessful()){
@@ -480,6 +307,14 @@ public class ProfileFragment extends Fragment {
             Toast.makeText(getContext(), "Signed-in successfully! P", Toast.LENGTH_SHORT).show();
             //insert the user:
             firebaseUser = task.getResult().getUser();
+            //update the views:
+            isSignedInView.setText("the user is signed in");
+            updateInfoButton.setVisibility(View.VISIBLE);
+            userName.setText(firebaseUser.getDisplayName());
+            userEmail.setText(firebaseUser.getEmail());
+            textViewUserId.setText(firebaseUser.getUid());
+            editTextPhone.setVisibility(View.GONE);
+            confirmPhoneNumberButton.setVisibility(View.GONE);
             //Done!
         } else{
             //the sign-in has not been approved.

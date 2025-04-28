@@ -14,6 +14,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -30,11 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link ForYouMemoFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+
 public class ForYouMemoFragment extends Fragment {
 
     static FirebaseUser firebaseUser;
@@ -45,44 +42,15 @@ public class ForYouMemoFragment extends Fragment {
     DatabaseReference noteContentsDatabaseReference;
 
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
     public ForYouMemoFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment ForYouMemoFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static ForYouMemoFragment newInstance(String param1, String param2) {
-        ForYouMemoFragment fragment = new ForYouMemoFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+        //required method
     }
 
     @Override
@@ -93,7 +61,7 @@ public class ForYouMemoFragment extends Fragment {
 
         //Initialize firebase-related objects:
         firebaseAuth = FirebaseAuth.getInstance();
-        firebaseUser = firebaseAuth.getCurrentUser(); //TODO: make sure this isnt null!
+        firebaseUser = firebaseAuth.getCurrentUser();
         database = FirebaseDatabase.getInstance("https://memocircle-ac0c1-default-rtdb.europe-west1.firebasedatabase.app/");
         usersDatabaseReference = database.getReference("users");
         publicNotesDatabaseReference = database.getReference("publicNotes");
@@ -102,6 +70,9 @@ public class ForYouMemoFragment extends Fragment {
         //initialize views:
         Button createPublicNoteButton = view.findViewById(R.id.createPublicNoteButton);
         ListView publicNotesListView = view.findViewById(R.id.publicNotesListView);
+        TextView publicMessageTextView = view.findViewById(R.id.publicMessageTextView);
+        //by default, hide the message text view:
+        publicMessageTextView.setVisibility(View.GONE);
 
         //the intent to move to the publicNoteActivity:
         Intent publicNoteActivityIntent = new Intent(getActivity(), PublicNoteActivity.class);
@@ -110,47 +81,54 @@ public class ForYouMemoFragment extends Fragment {
         List<String> publicNotesIdsArr = new ArrayList<>();
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_selectable_list_item, new ArrayList<>());
         publicNotesListView.setAdapter(adapter);
-        //displaying the notes in the ListView:
-        publicNotesDatabaseReference.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() { //access all notes in publicNotes node
-            @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                int publicNotesNum = (int) task.getResult().getChildrenCount();
-                if(publicNotesNum == 0){
-                    //there are no public notes
-                    Log.d("FirebaseDebug", "No public notes");
-                    return;
-                }
-                final int[] completedNotes = {0}; //this is a trick: to change this variable from inside the onComplete, it needs to be final.
-                if(task.isSuccessful()){
-                    for(DataSnapshot snapshot : task.getResult().getChildren()){ //interact with each public note
-                        noteContentsDatabaseReference.child(snapshot.getKey())//use the public note's key to access the note's contents
-                                .child("noteTitle").get()//get the note's title
-                                .addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<DataSnapshot> task) { //do stuff with the title
-                                        if(task.isSuccessful()){
-                                            Log.d("FirebaseDebug", "Title: " + task.getResult().getValue(String.class));
-                                            adapter.add(task.getResult().getValue(String.class));
-                                            publicNotesIdsArr.add(snapshot.getKey());
-                                        }
-                                    }
-                                });
+
+        if(firebaseUser == null){
+            //the user isn't signed in. cant continue.
+            createPublicNoteButton.setVisibility(View.GONE);
+            publicNotesListView.setVisibility(View.GONE);
+            //show the message:
+            publicMessageTextView.setVisibility(View.VISIBLE);
+        } else {
+            //displaying the notes in the ListView:
+            publicNotesDatabaseReference.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() { //access all notes in publicNotes node
+                @Override
+                public void onComplete(@NonNull Task<DataSnapshot> task) {
+                    int publicNotesNum = (int) task.getResult().getChildrenCount();
+                    if (publicNotesNum == 0) {
+                        //there are no public notes
+                        Log.d("FirebaseDebug", "No public notes");
+                        return;
                     }
-                    publicNotesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() { //launch the correct public note when a note is clicked:
-                        @Override
-                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                            String noteId = publicNotesIdsArr.get(position);
-                            //Log.d("FirebaseDebug", "noteID: " + noteId);
-                            publicNoteActivityIntent.putExtra("publicNoteId", noteId);
-                            startActivity(publicNoteActivityIntent);
+                    if (task.isSuccessful()) {
+                        for (DataSnapshot snapshot : task.getResult().getChildren()) { //interact with each public note
+                            noteContentsDatabaseReference.child(snapshot.getKey())//use the public note's key to access the note's contents
+                                    .child("noteTitle").get()//get the note's title
+                                    .addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<DataSnapshot> task) { //do stuff with the title
+                                            if (task.isSuccessful()) {
+                                                Log.d("FirebaseDebug", "Title: " + task.getResult().getValue(String.class));
+                                                adapter.add(task.getResult().getValue(String.class));
+                                                publicNotesIdsArr.add(snapshot.getKey());
+                                            }
+                                        }
+                                    });
                         }
-                    });
+                        publicNotesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() { //launch the correct public note when a note is clicked:
+                            @Override
+                            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                                String noteId = publicNotesIdsArr.get(position);
+                                //Log.d("FirebaseDebug", "noteID: " + noteId);
+                                publicNoteActivityIntent.putExtra("publicNoteId", noteId);
+                                startActivity(publicNoteActivityIntent);
+                            }
+                        });
 
+                    }
                 }
-            }
-        });
-        Toast.makeText(getContext(), "Searching for public notes...", Toast.LENGTH_SHORT).show(); //TODO: make it prettier and more real (some sort of loading screen)
-
+            });
+            Toast.makeText(getContext(), "Searching for public notes...", Toast.LENGTH_SHORT).show(); //TODO: make it prettier and more real (some sort of loading screen)
+        }
         //on click for creating a new public note:
         createPublicNoteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -220,6 +198,5 @@ public class ForYouMemoFragment extends Fragment {
     }
 
 
-    //TODO: ListView is outdated and should be replaced before final version.
     //TODO: show the notes by latest edited.
 }
