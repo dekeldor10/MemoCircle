@@ -115,7 +115,7 @@ public class SharedNoteActivity extends AppCompatActivity {
                     }
                 });
 
-        //show the allowed users: do it tomorrow:
+        //show the allowed users: //TODO: add a allowed users view
         /*
         String[] allowedUsernamesList = {firebaseUser.getDisplayName()}; //the current user is obviously allowed
         sharedNotesPermissionsDatabaseReference.child(sharedNoteId).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() { //the users inside the note's permissions

@@ -26,9 +26,8 @@ public class MainActivity extends AppCompatActivity {
 
         //declare the buttons
         Button profileButton = findViewById(R.id.ProfileButton);
-        Button forYouMemoButton = findViewById(R.id.ForYouMemoButton);
-        Button sharedMemoButton = findViewById(R.id.SharedMemoButton);
         Button personalMemoButton = findViewById(R.id.PersonalMemoButton);
+        Button onlineMemoButton = findViewById(R.id.OnlineMemoButton);
 
 
         //Please note: I will be inflating every fragment with a tag.
@@ -54,26 +53,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        sharedMemoButton.setOnClickListener(v -> {
-            //create a SharedMemoFragment object, and get the fragment by tag. this will be used to check if the fragment is already inflated.
-            SharedMemoFragment sharedMemoFragment = (SharedMemoFragment) getSupportFragmentManager().findFragmentByTag("SHARED_MEMO_FRAGMENT");
+        onlineMemoButton.setOnClickListener(v -> {
+            //create a OnlineNotesFragment object, and get the fragment by tag. this will be used to check if the fragment is already inflated.
+            OnlineNotesFragment onlineNotesFragment = (OnlineNotesFragment) getSupportFragmentManager().findFragmentByTag("ONLINE_NOTES_FRAGMENT");
             //check if the fragment is already inflated and visible.
-            if(sharedMemoFragment == null || !sharedMemoFragment.isVisible()){
+            if(onlineNotesFragment == null || !onlineNotesFragment.isVisible()){
                 //the fragment is not visible, inflate it.
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragmentContainer, new SharedMemoFragment(), "SHARED_MEMO_FRAGMENT")
-                        .commit();
-            }
-        });
-
-        forYouMemoButton.setOnClickListener(v -> {
-            //create a ForYouMemoFragment object, and get the fragment by tag. this will be used to check if the fragment is already inflated.
-            ForYouMemoFragment forYouMemoFragment = (ForYouMemoFragment) getSupportFragmentManager().findFragmentByTag("FOR_YOU_MEMO_FRAGMENT");
-            //check if the fragment is already inflated and visible.
-            if(forYouMemoFragment == null || !forYouMemoFragment.isVisible()){
-                //the fragment is not visible, inflate it.
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragmentContainer, new ForYouMemoFragment(), "FOR_YOU_MEMO_FRAGMENT")
+                        .replace(R.id.fragmentContainer, new OnlineNotesFragment(), "ONLINE_NOTES_FRAGMENT")
                         .commit();
             }
         });

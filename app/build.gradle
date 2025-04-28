@@ -63,4 +63,7 @@ dependencies {
     //implementations for firebase realtime database:
     implementation libs.firebase.database
 
+    //implementation for Material3, the recommended method for coloring the app:
+    implementation libs.material
+
 }
