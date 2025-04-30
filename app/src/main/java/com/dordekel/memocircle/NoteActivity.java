@@ -301,7 +301,6 @@ public class NoteActivity extends AppCompatActivity {
 
 
     //Image uri methods (cannot be done in a separate class: some of the functions are non-static):
-
     //request uri access from user (mandatory for version later than android 10 (api29) - Scoped Storage for security reasons):
     public void requestUriAccess(Uri uri){
         List<Uri> uris = Collections.singletonList(uri);
