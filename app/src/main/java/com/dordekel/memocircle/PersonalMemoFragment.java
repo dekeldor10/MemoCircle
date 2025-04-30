@@ -84,10 +84,7 @@ public class PersonalMemoFragment extends Fragment {
         public void onPersonalNoteClick(Note note) {
             noteIntent.putExtra("isNewNote", false);
             //pass the noteID to the NoteActivity via putExtra - again, retrieving data from the room database should be done under a new thread.
-            new Thread(() -> {
-                noteIntent.putExtra("noteID", note.getNoteId());
-            }).start();
-
+            noteIntent.putExtra("noteID", note.getNoteId());
             //start the NoteActivity:
             startActivity(noteIntent);
         }

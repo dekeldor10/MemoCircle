@@ -137,15 +137,20 @@ public class NoteActivity extends AppCompatActivity {
 
         saveNoteButton.setOnClickListener(v -> {
             //get the texts from the editTexts:
-            String noteTitle = titleEditText.getText().toString();
-            String textContent = textContentEditText.getText().toString();
-
+            String[] noteTitle = {titleEditText.getText().toString()};
+            String[] textContent = {textContentEditText.getText().toString()};
+            if(noteTitle[0].isBlank()){
+                noteTitle[0] = "Untitled";
+            }
+            if(textContent[0].isBlank()){
+                textContent[0] = "No content";
+            }
 
             //check is this is a new note or an existing one:
             if(isNewNote){
                 //this is a NEW note. create it.
                 //create the note with the resultImgUtiString. if the used did not take a picture, it will be null (which is fine).
-                Note note = new Note(noteTitle, textContent, resultImgUriString);
+                Note note = new Note(noteTitle[0], textContent[0], resultImgUriString);
 
                 //save the note to the database:
                 //when using Room, the note has to be created by a Thread.
@@ -160,8 +165,8 @@ public class NoteActivity extends AppCompatActivity {
                 //again, when using Room it's recommended to use a Thread
                 new Thread(() -> {
                     //this is an EXISTING note. update it.
-                    existingNote.setTitle(noteTitle);
-                    existingNote.setTextContent(textContent);
+                    existingNote.setTitle(noteTitle[0]);
+                    existingNote.setTextContent(textContent[0]);
                     existingNote.setImgUriString(resultImgUriString);
                     noteDao.updateNote(existingNote);
                 }).start();
