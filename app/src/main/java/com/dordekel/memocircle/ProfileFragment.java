@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.credentials.CredentialManager;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -21,6 +22,7 @@ import com.google.android.gms.auth.api.identity.SignInClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseException;
+import com.google.firebase.auth.ActionCodeSettings;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
@@ -47,10 +49,11 @@ public class ProfileFragment extends Fragment {
     String phoneNumber;
     String mVerificationId;
     String userVerificationCode;
+    String emailToVerify;
     boolean isSignInButton = false;
 
     TextView isSignedInView, textViewUserId, userName, userEmail;
-    Button updateInfoButton, confirmPhoneNumberButton, signOutButton;
+    Button updateInfoButton, confirmPhoneNumberButton, signOutButton, signInEmail;
     EditText editTextPhone;
 
 
@@ -79,6 +82,10 @@ public class ProfileFragment extends Fragment {
         confirmPhoneNumberButton = view.findViewById(R.id.confirmPhoneNumberButton);
         signOutButton = view.findViewById(R.id.signOutButton);
         updateInfoButton = view.findViewById(R.id.updateInfoButton);
+        signInEmail = view.findViewById(R.id.signInEmail);
+
+        emailToVerify = "dekeldor10@gmail.com";
+
 
         //mAuth as an instance of FirebaseAuth:
         mAuth = FirebaseAuth.getInstance();
@@ -263,6 +270,14 @@ public class ProfileFragment extends Fragment {
             isSignInButton = false;
         });
 
+        signInEmail.setOnClickListener(v -> {
+
+            sendSignInLink(emailToVerify);
+
+        });
+
+
+
         //important for firebase authentication with phone number: handling possible callbacks for the possible request results
         mPhoneCallbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             @Override
@@ -339,6 +354,64 @@ public class ProfileFragment extends Fragment {
                 Toast.makeText(getContext(), "The verification code is wrong. Try again.", Toast.LENGTH_SHORT).show();
             } else{
                 Toast.makeText(getContext(), "Other Error.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    // Call this when the user clicks a "Send Sign-in Link" button
+    public void sendSignInLink(String email) {
+        //this.userEmail = email; // Save for later verification
+
+        ActionCodeSettings actionCodeSettings =
+                ActionCodeSettings.newBuilder()
+                        .setAndroidPackageName(
+                                getContext().getPackageName(),
+                                true, /* installIfNotAvailable */
+                                null /* minimumVersion */)
+                        .setHandleCodeInApp(true) // This is crucial for handling in-app
+                        .setUrl("https://memocircle-ac0c1.firebaseapp.com") // **YOUR AUTHORIZED DOMAIN HERE**
+                        .setDynamicLinkDomain("your-dynamic-link-domain.page.link") // Optional, for custom dynamic links
+                        .build();
+
+        mAuth.sendSignInLinkToEmail(email, actionCodeSettings)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d("FirebaseEA", "Email sent.");
+                        Toast.makeText(getContext(),
+                                "Sign-in link sent to " + email,
+                                Toast.LENGTH_LONG).show();
+
+                    } else {
+                        Log.e("FirebaseEA", "Error sending sign-in link", task.getException());
+                        Toast.makeText(getContext(),
+                                "Failed to send sign-in link: " + task.getException().getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    // Call this in onCreate and onNewIntent to handle the incoming link
+    private void handleSignInLink(String link) {
+        if (mAuth.isSignInWithEmailLink(link)) {
+
+
+            if (emailToVerify != null) {
+                mAuth.signInWithEmailLink(emailToVerify, link)
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                Log.d("FirebaseEA", "Successfully signed in with email link!");
+                                FirebaseUser user = mAuth.getCurrentUser();
+
+                                // Navigate to your main app screen
+                                //startActivity(new Intent(ProfileFragment.this, MainActivity.class));
+                            } else {
+                                Log.e("FirebaseEA", "Error signing in with email link", task.getException());
+                            }
+                        });
+            } else {
+                // Email not found in preferences. Ask user to re-enter their email.
+                //oast.makeText(this, "Please re-enter your email to complete sign-in.", Toast.LENGTH_LONG).show();
+                // You might want to show a dialog here to ask for email
             }
         }
     }
