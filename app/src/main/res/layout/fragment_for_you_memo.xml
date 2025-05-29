@@ -3,13 +3,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/top_notebook_page_image"
     tools:context=".ForYouMemoFragment">
 
-    <!-- TODO: Update blank fragment layout -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="70dp" />
 
         <ListView
             android:id="@+id/publicNotesListView"
@@ -24,7 +28,9 @@
         android:layout_gravity="bottom|right"
         android:layout_marginRight="20dp"
         android:layout_marginBottom="20dp"
-        android:text="add new public note" />
+        android:textSize="16sp"
+        style="@style/Widget.Material3.FloatingActionButton.Primary"
+        android:text="Add new public note" />
 
     <TextView
         android:id="@+id/publicMessageTextView"

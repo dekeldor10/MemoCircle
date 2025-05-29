@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:id="@+id/roomNoteCardView"
     android:layout_margin="15dp"
-    android:backgroundTint="@color/md_theme_primaryContainer"
+    android:backgroundTint="@color/bright_yellow"
     card_view:cardCornerRadius="7dp"
     card_view:cardElevation="5dp">
 
@@ -15,6 +15,13 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            card_view:srcCompat="@drawable/pin_image" />
 
         <ImageView
             android:id="@+id/roomNoteImageView"
@@ -27,7 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="18sp"
-            android:textColor="@color/md_theme_onPrimaryContainer"
+            android:textColor="@color/royal_blue"
             android:text="TextView"
             android:layout_marginLeft="5dp"/>
 
@@ -36,7 +43,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="13sp"
-            android:textColor="@color/md_theme_onPrimaryContainer"
+            android:textColor="@color/royal_blue"
             android:text="TextView"
             android:layout_marginLeft="5dp"/>
     </LinearLayout>

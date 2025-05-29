@@ -50,7 +50,7 @@ public class ProfileFragment extends Fragment {
     boolean isSignInButton = false;
 
     TextView isSignedInView, textViewUserId, userName, userEmail;
-    Button updateInfoButton, confirmPhoneNumberButton;
+    Button updateInfoButton, confirmPhoneNumberButton, signOutButton;
     EditText editTextPhone;
 
 
@@ -77,7 +77,7 @@ public class ProfileFragment extends Fragment {
         textViewUserId = view.findViewById(R.id.textViewUserId);
         editTextPhone = view.findViewById(R.id.editTextPhone);
         confirmPhoneNumberButton = view.findViewById(R.id.confirmPhoneNumberButton);
-        Button signOutButton = view.findViewById(R.id.signOutButton);
+        signOutButton = view.findViewById(R.id.signOutButton);
         updateInfoButton = view.findViewById(R.id.updateInfoButton);
 
         //mAuth as an instance of FirebaseAuth:
@@ -153,7 +153,7 @@ public class ProfileFragment extends Fragment {
         //check if the user is already signed-in:
         if(mAuth.getCurrentUser() != null){
             //the user is signed in:
-            isSignedInView.setText("the user is signed in");
+            isSignedInView.setText("The user is signed in");
             //get the user:
             firebaseUser = mAuth.getCurrentUser();
             //update the views:
@@ -161,8 +161,12 @@ public class ProfileFragment extends Fragment {
                 userName.setText(firebaseUser.getDisplayName());
                 userEmail.setText(firebaseUser.getEmail());
                 textViewUserId.setText(firebaseUser.getUid());
+                textViewUserId.setVisibility(View.VISIBLE);
+                updateInfoButton.setVisibility(View.VISIBLE);
+                signOutButton.setVisibility(View.VISIBLE);
                 editTextPhone.setVisibility(View.GONE);
                 confirmPhoneNumberButton.setVisibility(View.GONE);
+
 
             } catch (NullPointerException e){
                 //this means that the user still hasn't set his name and email.
@@ -173,8 +177,10 @@ public class ProfileFragment extends Fragment {
 
         } else{
             //the user is not signed in yet.
-            isSignedInView.setText("the user is not signed in");
+            isSignedInView.setText("The user is not signed in");
+            textViewUserId.setVisibility(View.GONE);
             updateInfoButton.setVisibility(View.GONE);
+            signOutButton.setVisibility(View.GONE);
         }
 
 
@@ -185,6 +191,7 @@ public class ProfileFragment extends Fragment {
                 //retrieve the phone number from the EditText:
                 phoneNumber = editTextPhone.getText().toString(); //the FirebaseAuth requires a phone number with a country code.
                 //TODO: enable Israel in the firebase webpage, and make it work also when you type 05x-xxx-xxxx.
+                Log.d("PhoneAuth", "the phone number is: " + phoneNumber);
 
                 //some settings for the authentication with firebase via phone number:
                 PhoneAuthOptions options = PhoneAuthOptions.newBuilder(mAuth)
@@ -193,7 +200,7 @@ public class ProfileFragment extends Fragment {
                         .setCallbacks(mPhoneCallbacks)
                         .build();
 
-                mAuth.setLanguageCode("he");
+                //mAuth.setLanguageCode("he");
                 //mAuth.useAppLanguage();
                 //launch the SMS authentication with firebase:
                 PhoneAuthProvider.verifyPhoneNumber(options);
@@ -204,11 +211,14 @@ public class ProfileFragment extends Fragment {
                 mPhoneAuthCredential = PhoneAuthProvider.getCredential(mVerificationId, userVerificationCode);
                 signInWithPhoneAuthCredential(mPhoneAuthCredential);
                 //update the Views:
-                isSignedInView.setText("the user is signed in");
+                isSignedInView.setText("The user is signed in");
                 try{
                     userName.setText(firebaseUser.getDisplayName());
                     userEmail.setText(firebaseUser.getEmail());
                     textViewUserId.setText(firebaseUser.getUid());
+                    textViewUserId.setVisibility(View.VISIBLE);
+                    updateInfoButton.setVisibility(View.VISIBLE);
+                    signOutButton.setVisibility(View.VISIBLE);
                     editTextPhone.setVisibility(View.GONE);
                     confirmPhoneNumberButton.setVisibility(View.GONE);
 
@@ -244,9 +254,12 @@ public class ProfileFragment extends Fragment {
             //update the views used for sign-in:
             editTextPhone.setVisibility(View.VISIBLE);
             confirmPhoneNumberButton.setVisibility(View.VISIBLE);
+            textViewUserId.setVisibility(View.GONE);
+            updateInfoButton.setVisibility(View.GONE);
+            signOutButton.setVisibility(View.GONE);
             editTextPhone.setText("");
             editTextPhone.setHint("Your phone number for SMS authentication");
-            confirmPhoneNumberButton.setText("send SMS");
+            confirmPhoneNumberButton.setText("Send SMS");
             isSignInButton = false;
         });
 
@@ -273,7 +286,7 @@ public class ProfileFragment extends Fragment {
                 //very important method. called when the SMS has been sent.
                 //the app needs to ask the user for the verification code sent via SMS,
                 //and construct a credential with the code and the verificationID.
-                Toast.makeText(getContext(), "Code has been sent. lease check your SMS app.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Code has been sent. Please check your SMS app.", Toast.LENGTH_SHORT).show();
                 //save the verificationID and for later use.
                 mVerificationId = verificationId;
 
@@ -304,12 +317,14 @@ public class ProfileFragment extends Fragment {
     private void handleSignInResult(Task<AuthResult> task){
         if(task.isSuccessful()){
             //great! the user has been approved and the sign in was successful.
-            Toast.makeText(getContext(), "Signed-in successfully! P", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Signed-in successfully!", Toast.LENGTH_SHORT).show();
             //insert the user:
             firebaseUser = task.getResult().getUser();
             //update the views:
-            isSignedInView.setText("the user is signed in");
+            isSignedInView.setText("The user is signed in");
+            textViewUserId.setVisibility(View.VISIBLE);
             updateInfoButton.setVisibility(View.VISIBLE);
+            signOutButton.setVisibility(View.VISIBLE);
             userName.setText(firebaseUser.getDisplayName());
             userEmail.setText(firebaseUser.getEmail());
             textViewUserId.setText(firebaseUser.getUid());

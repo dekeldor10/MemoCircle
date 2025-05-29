@@ -27,9 +27,9 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            style="@style/Widget.Material3.Button.TextButton"
+            style="@style/Widget.Material3.AppBarLayout"
             android:textSize="20dp"
-            android:text="personal" />
+            android:text="Personal" />
 
 
         <Button
@@ -37,7 +37,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            style="@style/Widget.Material3.Button.TextButton"
+            style="@style/Widget.Material3.AppBarLayout"
             android:textSize="20dp"
             android:text="Online" />
 
@@ -47,9 +47,9 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            style="@style/Widget.Material3.Button.TextButton"
+            style="@style/Widget.Material3.AppBarLayout"
             android:textSize="20dp"
-            android:text="profile" />
+            android:text="Profile" />
 
 
 

@@ -19,6 +19,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="start"
             android:layout_weight=".5"
+            android:textSize="18sp"
+            style="@style/Widget.Material3.FloatingActionButton.Primary"
             android:text="Return" />
         <Space
             android:layout_width="wrap_content"
@@ -31,6 +33,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:layout_weight=".5"
+            android:textSize="18sp"
+            style="@style/Widget.Material3.FloatingActionButton.Primary"
             android:text="Delete" />
     </LinearLayout>
 
@@ -61,7 +65,9 @@
         android:id="@+id/updatePublicNoteButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="update note" />
+        android:textSize="18sp"
+        style="@style/Widget.Material3.FloatingActionButton.Primary"
+        android:text="Update note" />
 
 
 </LinearLayout>

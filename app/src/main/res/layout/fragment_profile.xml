@@ -11,7 +11,7 @@
         android:id="@+id/isSignedIn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="the user is..." />
+        android:text="The user is..." />
 
     <TextView
         android:id="@+id/userName"
@@ -45,13 +45,17 @@
         android:id="@+id/confirmPhoneNumberButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="send SMS" />
+        android:textSize="16sp"
+        style="@style/Widget.Material3.FloatingActionButton.Primary"
+        android:text="Send SMS" />
 
     <Button
         android:id="@+id/updateInfoButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="50dp"
+        android:textSize="16sp"
+        style="@style/Widget.Material3.FloatingActionButton.Primary"
         android:text="Update Name and E-mail" />
 
     <Button
@@ -60,6 +64,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="350dp"
         android:layout_gravity="center"
+        android:textSize="16sp"
+        style="@style/Widget.Material3.FloatingActionButton.Primary"
         android:text="Sign Out" />
 
 </LinearLayout>

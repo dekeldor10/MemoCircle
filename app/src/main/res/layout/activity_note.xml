@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/light_yellow"
     tools:context=".NoteActivity">
 
     <LinearLayout
@@ -19,7 +20,9 @@
             android:layout_height="wrap_content"
             android:layout_gravity="start"
             android:layout_weight=".5"
-            android:text="return" />
+            android:textSize="18sp"
+            style="@style/Widget.Material3.FloatingActionButton.Primary"
+            android:text="Return" />
 
         <Space
             android:layout_width="wrap_content"
@@ -32,7 +35,9 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:layout_weight=".5"
-            android:text="delete" />
+            android:textSize="18sp"
+            style="@style/Widget.Material3.FloatingActionButton.Primary"
+            android:text="Delete" />
 
     </LinearLayout>
 
@@ -45,6 +50,8 @@
         android:ems="10"
         android:hint="Title"
         android:inputType="text"
+        android:textColor="@color/royal_blue"
+        android:textColorHint="@color/royal_blue"
         android:textSize="24sp" />
 
     <EditText
@@ -54,6 +61,8 @@
         android:ems="10"
         android:gravity="start|top"
         android:hint="Note"
+        android:textColor="@color/royal_blue"
+        android:textColorHint="@color/royal_blue"
         android:inputType="textMultiLine"
         android:textSize="16sp" />
 
@@ -69,14 +78,18 @@
 
         <ImageButton
             android:id="@+id/addImageButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:srcCompat="@android:drawable/ic_menu_gallery" />
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_gravity="center"
+            style="@style/Widget.Material3.MaterialTimePicker.ImageButton"
+            android:background="@drawable/add_image_icon" />
 
         <Button
             android:id="@+id/saveNoteButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textSize="18sp"
+            style="@style/Widget.Material3.FloatingActionButton.Primary"
             android:text="Save Note" />
     </LinearLayout>
 

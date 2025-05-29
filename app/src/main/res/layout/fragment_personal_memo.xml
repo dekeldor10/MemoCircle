@@ -4,6 +4,7 @@
     android:id="@+id/frameLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/cork_background_image"
     tools:context=".PersonalMemoFragment">
 
     <LinearLayout
@@ -25,5 +26,7 @@
         android:layout_gravity="bottom|right"
         android:layout_marginRight="20dp"
         android:layout_marginBottom="20dp"
-        android:text="add new note" />
+        android:textSize="16sp"
+        style="@style/Widget.Material3.FloatingActionButton.Primary"
+        android:text="Add new note" />
 </FrameLayout>

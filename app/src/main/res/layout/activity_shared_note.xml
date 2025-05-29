@@ -18,7 +18,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight=".5"
-            android:text="return" />
+            android:textSize="18sp"
+            style="@style/Widget.Material3.FloatingActionButton.Primary"
+            android:text="Return" />
 
         <Space
             android:layout_width="wrap_content"
@@ -30,7 +32,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight=".5"
-            android:text="delete" />
+            android:textSize="18sp"
+            style="@style/Widget.Material3.FloatingActionButton.Primary"
+            android:text="Delete" />
     </LinearLayout>
 
     <TextView
@@ -60,11 +64,13 @@
         android:id="@+id/sharedUpdateNoteButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="update shared note" />
+        android:textSize="18sp"
+        style="@style/Widget.Material3.FloatingActionButton.Primary"
+        android:text="Update shared note" />
 
     <MultiAutoCompleteTextView
         android:id="@+id/usersCompleteTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="users list" />
+        android:hint="Users list" />
 </LinearLayout>

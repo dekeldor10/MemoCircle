@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.MemoCircle" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Base.Theme.MemoCircle" parent="Theme.Material3.Dark.NoActionBar">
         <!-- my phone user the dark theme, so just keep in mind -->
         <item name="colorPrimary">@color/md_theme_primary</item>
         <item name="colorOnPrimary">@color/md_theme_onPrimary</item>

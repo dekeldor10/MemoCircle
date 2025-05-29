@@ -24,9 +24,11 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -87,12 +89,13 @@ public class SharedNoteActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<DataSnapshot> task) {
                         noteOwner[0] = task.getResult().getValue(String.class);
-                        isOwner[0] = (firebaseUser.getUid().equals(noteOwner[0]));
+                        isOwner[0] = firebaseUser.getUid().equals(noteOwner[0]);
                         //if not, hide the delete button and the option to invite users:
                         if(!isOwner[0]){
                             sharedDeleteButton.setVisibility(View.GONE);
                             usersCompleteTextView.setVisibility(View.GONE);
                         }
+                        Log.d("FirebaseAA", "is owner: " + isOwner[0]);
                     }
                 });
 
@@ -131,7 +134,7 @@ public class SharedNoteActivity extends AppCompatActivity {
             }
         });
         final String[] allowedUsernames = {" " + firebaseUser.getDisplayName()};
-        //get the usernames for the allowed users (bu ID):
+        //get the usernames for the allowed users (by ID):
         usersDatabaseReference.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
@@ -167,12 +170,39 @@ public class SharedNoteActivity extends AppCompatActivity {
         usersCompleteTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //permit adding users only if you are the note's owner:
-                if(isOwner[0]){
-                    sharedNotesPermissionsDatabaseReference.child(sharedNoteId).child(usersIdList.get(position)).setValue(true);
-                    Toast.makeText(SharedNoteActivity.this, "user " + usersIdList.get(position) + "has been added to the note", Toast.LENGTH_SHORT).show();
-                }
-                Toast.makeText(SharedNoteActivity.this, "only the owner is allowed to add users", Toast.LENGTH_SHORT).show();
+                Log.d("FirebaseAA", "item clicked: " + parent.getItemAtPosition(position));
+                String[] userToAdd = {""};
+                //get the userID via username:
+                usersDatabaseReference.orderByValue().equalTo((String) parent.getItemAtPosition(position)).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        for(DataSnapshot userSnapshot : snapshot.getChildren()){ //I search by username, so there should only be one!
+                            userToAdd[0] = userSnapshot.getKey();
+                        }
+
+                        //permit adding users only if you are the note's owner:
+                        //it is done here to avoid issues with latency.
+                        if(isOwner[0]){
+                            Log.d("FirebaseAA", "usertoadd: " + userToAdd[0]); //this is ""! something wrong here.
+                            //usersDatabaseReference.child(firebaseUser.getUid()).setValue(firebaseUser.getDisplayName());
+
+                        sharedNotesPermissionsDatabaseReference.child(sharedNoteId).child(userToAdd[0]).setValue(true).addOnCompleteListener(new OnCompleteListener<Void>() {
+                          @Override
+                          public void onComplete(@NonNull Task<Void> task) {
+                              Toast.makeText(SharedNoteActivity.this, "user " + usersIdList.get(position) + "has been added to the note", Toast.LENGTH_SHORT).show();
+                           }
+                        });
+
+                        } else{
+                            Toast.makeText(SharedNoteActivity.this, "only the owner is allowed to add users", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
             }
         });
 

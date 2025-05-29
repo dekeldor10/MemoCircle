@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragmentContainer, new PersonalMemoFragment(), "PERSONAL_MEMO_FRAGMENT")
                 .commit();
-
+        personalMemoButton.setEnabled(false);
 
 
         //setting onClickListeners for the buttons. The navigation itself.
@@ -49,6 +49,10 @@ public class MainActivity extends AppCompatActivity {
                         .replace(R.id.fragmentContainer, new PersonalMemoFragment(), "PERSONAL_MEMO_FRAGMENT")
                         .commit();
             }
+            personalMemoButton.setEnabled(false);
+            onlineMemoButton.setEnabled(true);
+            profileButton.setEnabled(true);
+
         });
 
         onlineMemoButton.setOnClickListener(v -> {
@@ -61,6 +65,9 @@ public class MainActivity extends AppCompatActivity {
                         .replace(R.id.fragmentContainer, new OnlineNotesFragment(), "ONLINE_NOTES_FRAGMENT")
                         .commit();
             }
+            personalMemoButton.setEnabled(true);
+            onlineMemoButton.setEnabled(false);
+            profileButton.setEnabled(true);
         });
 
         profileButton.setOnClickListener(v -> {
@@ -73,6 +80,9 @@ public class MainActivity extends AppCompatActivity {
                         .replace(R.id.fragmentContainer, new ProfileFragment(), "PROFILE_FRAGMENT")
                         .commit();
             }
+            personalMemoButton.setEnabled(true);
+            onlineMemoButton.setEnabled(true);
+            profileButton.setEnabled(false);
         });
 
     }

@@ -2,6 +2,9 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="bright_yellow">#FFFF00</color>
+    <color name="light_yellow">#FFFF66</color>"
+    <color name="royal_blue">#4169E1</color>
 
     <!-- Light theme: -->
     <color name="md_light_theme_primary">#1E4DAC</color>

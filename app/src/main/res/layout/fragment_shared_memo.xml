@@ -3,12 +3,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/top_notebook_page_image"
     tools:context=".SharedMemoFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="70dp" />
 
         <ListView
             android:id="@+id/sharedNotesListView"
@@ -23,7 +27,9 @@
         android:layout_gravity="bottom|right"
         android:layout_marginRight="20dp"
         android:layout_marginBottom="20dp"
-        android:text="add new shared note" />
+        android:textSize="16sp"
+        style="@style/Widget.Material3.FloatingActionButton.Primary"
+        android:text="Add new shared note" />
 
     <TextView
         android:id="@+id/messageTextView"
